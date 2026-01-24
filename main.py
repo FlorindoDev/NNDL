@@ -1,6 +1,6 @@
 from Model.NeuralNetwork import NeuralNetwork as nn
-from Function.Activation import ReLU, softmax
-from Function.Weight_Init import Glorot, He
+from common.Activation import ReLU, softmax
+from common.Weight_Init import Glorot, He
 
 import numpy as np
 

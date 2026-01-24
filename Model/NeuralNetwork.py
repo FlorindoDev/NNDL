@@ -1,11 +1,12 @@
 import numpy as np
-from Function.Activation import ReLU, softmax
-from Function.Weight_Init import He
+from common.Activation import ReLU, softmax
+from common.Weight_Init import He
+from common.Logger import Logger
 
 
 
 class NeuralNetwork():
-    def __init__(self, layer_sizes, activation=ReLU, output_activation=softmax, learning_rate=0.01, weight_init=He):
+    def __init__(self, layer_sizes, activation=ReLU, output_activation=softmax, learning_rate=0.01, weight_init=He, logger=None):
         """
         Inizializza la rete neurale.
         
@@ -15,12 +16,16 @@ class NeuralNetwork():
             output_activation: funzione di attivazione per l'output ('softmax', 'sigmoid', 'linear')
             learning_rate: learning rate per l'ottimizzazione
             weight_init: metodo di inizializzazione pesi ('he', 'xavier', 'random')
+            logger: istanza di Logger opzionale
         """
+
+        self.logger = logger if logger else Logger()
 
         self.activation = activation
         self.output_activation = output_activation
         self.learning_rate = learning_rate
         self.weight_init = weight_init
+
 
         self.layer_sizes = layer_sizes
         self.num_layers = len(layer_sizes) - 1 # Senza input
@@ -55,8 +60,8 @@ class NeuralNetwork():
             self.weights.append(W)
             self.biases.append(b)
 
-        print(f'matrice dei pesi \n{self.weights}') 
-        print(f'matrice dei biases \n{self.biases}') 
+        self.logger.print_matrix(self.weights, 'matrice dei pesi')
+        self.logger.print_matrix(self.biases, 'matrice dei biases') 
         
     
     def _activation(self, z, function_name):
@@ -92,8 +97,8 @@ class NeuralNetwork():
             
         
 
-        print(f'matrice dei pre_activations \n{self.pre_activations}') 
-        print(f'matrice dei activations \n{self.activations}') 
+        self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
+        self.logger.print_matrix(self.activations, 'matrice dei activations') 
         
     
     def backward(self, X, y):

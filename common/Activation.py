@@ -1,4 +1,7 @@
 import numpy as np
+from .Logger import Logger
+
+logger = Logger()
 
 def ReLU(a):
     return np.maximum(a, 0)
@@ -19,8 +22,8 @@ def softmax(a):
     exp_a = np.exp(a)
     probs = exp_a / np.sum(exp_a, axis=0, keepdims=True)
     
-    col_sums = np.sum(probs, axis=0)
-    print(f"softmax col sums: {col_sums}")
+    #col_sums = np.sum(probs, axis=0)
+    #logger.print(col_sums, "softmax col sums:")
 
     return probs
     
