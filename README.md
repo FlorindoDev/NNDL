@@ -1,1 +1,1 @@
-# NNDL
+# MNIST Neural Network Benchmarking
