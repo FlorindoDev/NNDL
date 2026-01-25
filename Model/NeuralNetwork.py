@@ -80,6 +80,7 @@ class NeuralNetwork():
         """
 
         self.pre_activations.append((self.weights[0] @ X.T) + self.biases[0].T)
+
         #Se ho un singolo layer usa l'attivazione di output
         if self.num_layers == 1:
             self.activations.append(self.output_activation(self.pre_activations[0]))
@@ -128,7 +129,7 @@ class NeuralNetwork():
         """
         
     
-        for epoch in range(epochs):
+        for _ in range(epochs):
             for start in range(0, len(X_train), batch_size):
                 batch = np.atleast_2d(X_train[start:start+batch_size])
                 target = np.atleast_1d(y_train[start:start+batch_size])
@@ -137,6 +138,7 @@ class NeuralNetwork():
                 
                 self.forward(batch)
                 self.loss(self.activations[self.num_layers - 1], t) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
+                
                 # Qui abbiamo l'errore del Batch e ora bisogna calcolare la derivata
                 # TODO: dopo dobbiamo fare backprop e update dei pesi
                 
