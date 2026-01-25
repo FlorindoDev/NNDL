@@ -2,11 +2,12 @@ import numpy as np
 from common.Activation import ReLU, softmax
 from common.Weight_Init import He
 from common.Logger import Logger
+from common.Loss import CrossEntropy
 
 
 
 class NeuralNetwork():
-    def __init__(self, layer_sizes, activation=ReLU, output_activation=softmax, learning_rate=0.01, weight_init=He, logger=None):
+    def __init__(self, layer_sizes, activation=ReLU, output_activation=softmax, learning_rate=0.01, weight_init=He, loss=CrossEntropy, logger=None):
         """
         Inizializza la rete neurale.
         
@@ -25,6 +26,7 @@ class NeuralNetwork():
         self.output_activation = output_activation
         self.learning_rate = learning_rate
         self.weight_init = weight_init
+        self.loss=loss
 
 
         self.layer_sizes = layer_sizes
@@ -63,14 +65,6 @@ class NeuralNetwork():
         self.logger.print_matrix(self.weights, 'matrice dei pesi')
         self.logger.print_matrix(self.biases, 'matrice dei biases') 
         
-    
-    def _activation(self, z, function_name):
-        """Applica la funzione di attivazione."""
-        pass
-    
-    def _activation_derivative(self, z, function_name):
-        """Calcola la derivata della funzione di attivazione."""
-        pass
     
     def forward(self, X):
         """
@@ -115,11 +109,7 @@ class NeuralNetwork():
         """Aggiorna i pesi usando i gradienti calcolati."""
         pass
     
-    def compute_loss(self, y_true, y_pred):
-        """Calcola la loss (cross-entropy o MSE)."""
-        pass
-    
-    def train(self, X_train, y_train, epochs, batch_size=32, verbose=True):
+    def train(self, X_train, y_train, epochs=1, batch_size=32, verbose=True):
         """
         Addestra la rete.
         
@@ -130,7 +120,23 @@ class NeuralNetwork():
             batch_size: dimensione del batch
             verbose: se stampare info durante training
         """
-        pass
+        max = np.max(y_train)+1
+        for _ in range(0,epochs):
+            for start in range(0, len(X_train), batch_size):
+                batch = np.atleast_2d(X_train[start:start+batch_size])
+                target = np.atleast_2d(y_train[start:start+batch_size])
+                t = np.eye(max)[target][0].T
+                self.logger.print(t,"ONE-HOT")
+
+                self.forward(batch)
+                self.loss(self.activations[self.num_layers - 1],t)
+
+                self.activations = []  
+                self.pre_activations = []
+        
+
+
+
     
     
     def evaluate(self, X_test, y_test):

@@ -6,6 +6,11 @@ logger = Logger()
 def ReLU(a):
     return np.maximum(a, 0)
 
+
+def Derivata_ReLU(a):
+    return np.where(a > 0, 1, 0)
+
+
 def LReLU(a):
     alfa = 0.01 # 0 < alfa < 1
     return np.maximum(a, alfa * a)
