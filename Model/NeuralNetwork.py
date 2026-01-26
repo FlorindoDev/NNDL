@@ -9,7 +9,7 @@ from common.loss import CrossEntropy
 class NeuralNetwork():
 
     def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
-             learning_rate=0.01, weight_init=He, loss=CrossEntropy, logger=None):
+             learning_rate=2, weight_init=He, loss=CrossEntropy, logger=None):
         """
         Inizializza la rete neurale.
         
@@ -44,7 +44,7 @@ class NeuralNetwork():
         self.biases = []
         self.activations = []
         self.pre_activations = []
-        self.dW = [] #gradineti pesi
+        self.dW = [] #gradineti pesi lista di matrici
         self.db = [] #gradienti baias 
         
         self._initialize_weights()
@@ -103,18 +103,33 @@ class NeuralNetwork():
         
     
     def backward(self, X, t):
+        self.dW = []
         delta = self.output_activation.derivate(self.activations[-1], t)
         deltas = [delta] # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
         for i in range(self.num_layers - 1, 0, -1): # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
             delta_next = deltas[-1]
-            delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next)
+            delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next) # i - 1 pensalo come il layer corrente
             deltas.append(delta)
-        print(deltas.__len__())
-
-    
+        deltas.reverse()
+        # adesso finalmente possiamo computare le varie derivate dei pesi
+        self.dW.append(deltas[0] @ X) # qua mi da 0 e non capisco perchè
+        
+        for i in range(self.num_layers - 1) : 
+            current_layer = i + 1 # layer corrente
+            self.dW.append(deltas[current_layer] @ self.activations[current_layer - 1].T)
+        
+            
     def update_weights(self):
-        """Aggiorna i pesi usando i gradienti calcolati."""
-        pass
+        for i in range(self.num_layers):
+            W_before = self.weights[i].copy()  
+
+            print(self.dW[i])
+        
+
+
+
+
+
     
     def train(self, X_train, y_train, epochs=1, batch_size=32, verbose=True):
         """
@@ -136,8 +151,9 @@ class NeuralNetwork():
                 t = np.eye(self.num_classes)[target].T 
                 self.forward(batch)                
                 self.loss(self.activations[self.num_layers - 1], t) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
+                # la loss che uscirà sarà un numero che sarà la somma delle loss sui singoli esempi del batch
                 self.backward(X_train,t)
-               
+                #self.update_weights()
                 self.activations = []  
                 self.pre_activations = []
 
