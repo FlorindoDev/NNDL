@@ -1,5 +1,5 @@
 import numpy as np
-from common.Activation import ReLU, softmax
+from common.Activation import ReLU, Softmax, delta_softmax
 from common.Weight_Init import He
 from common.Logger import Logger
 from common.Loss import CrossEntropy
@@ -8,7 +8,7 @@ from common.Loss import CrossEntropy
 
 class NeuralNetwork():
 
-    def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=softmax, 
+    def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
              learning_rate=0.01, weight_init=He, loss=CrossEntropy, logger=None):
         """
         Inizializza la rete neurale.
@@ -31,7 +31,7 @@ class NeuralNetwork():
             raise ValueError(f"L'ultimo layer deve avere {num_classes} neuroni, ha {layer_sizes[-1]}")
         
         self.num_classes = num_classes
-        self.activation = activation
+        self.fun_activation = activation
         self.output_activation = output_activation
         self.learning_rate = learning_rate
         self.weight_init = weight_init
@@ -44,8 +44,8 @@ class NeuralNetwork():
         self.biases = []
         self.activations = []
         self.pre_activations = []
-        self.dW = []
-        self.db = []
+        self.dW = [] #gradineti pesi
+        self.db = [] #gradienti baias 
         
         self._initialize_weights()
       
@@ -83,18 +83,18 @@ class NeuralNetwork():
 
         #Se ho un singolo layer usa l'attivazione di output
         if self.num_layers == 1:
-            self.activations.append(self.output_activation(self.pre_activations[0]))
+            self.activations.append(self.output_activation.activation(self.pre_activations[0]))
         else:
-            self.activations.append(self.activation(self.pre_activations[0]))
+            self.activations.append(self.fun_activation.activation(self.pre_activations[0]))
          
         for step in range(1,self.num_layers):
 
             self.pre_activations.append((self.weights[step] @ self.activations[step-1]) + self.biases[step].T)
             
             if step == self.num_layers - 1 :
-                self.activations.append(self.output_activation(self.pre_activations[step]))
+                self.activations.append(self.output_activation.activation(self.pre_activations[step]))
             else:
-                self.activations.append(self.activation(self.pre_activations[step]))
+                self.activations.append(self.fun_activation.activation(self.pre_activations[step]))
             
         
 
@@ -102,7 +102,7 @@ class NeuralNetwork():
         self.logger.print_matrix(self.activations, 'matrice dei activations') 
         
     
-    def backward(self, X, y):
+    def backward(self, X, t):
         """
         Backward propagation - calcola i gradienti.
         
@@ -110,6 +110,19 @@ class NeuralNetwork():
             X: input data
             y: target labels
         """
+        delta=self.output_activation.derivate(self.activations[-1],t)
+        for i in range(self.num_layers, 1, -1):
+            self.logger.print(self.pre_activations[i-1].shape,"shape")
+            self.logger.print(delta.shape,"shape delta")
+            self.logger.print(self.weights[i-1].shape,"shape w")
+            self.logger.print((self.weights[i-1].T @ delta).shape,"shape2")
+            self.logger.print((self.weights[i-1].T @ delta).T.shape,"shape3")
+            delta = self.fun_activation.derivate(self.pre_activations[i-1])@(self.weights[i-1].T @ delta).T
+            self.logger.print_matrix(delta,f"delta {i-1}")  
+            
+
+
+
         pass
     
     def update_weights(self):
@@ -137,11 +150,15 @@ class NeuralNetwork():
                 t = np.eye(self.num_classes)[target].T
                 
                 self.forward(batch)
+
+                
                 self.loss(self.activations[self.num_layers - 1], t) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
                 
                 # Qui abbiamo l'errore del Batch e ora bisogna calcolare la derivata
                 # TODO: dopo dobbiamo fare backprop e update dei pesi
-                
+        
+                self.backward(X_train,t)
+               
                 self.activations = []  
                 self.pre_activations = []
 

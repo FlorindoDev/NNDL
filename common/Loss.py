@@ -8,6 +8,7 @@ def CrossEntropy(y, t):
     y : array (N, C)  -> output della softmax per colonna
     t : array (N, C)  -> target one-hot per riga
     """
+    
     loss = np.sum(-np.sum(t * np.log(y), axis=0))
     logger.print(loss,"LOSS")
     return loss
