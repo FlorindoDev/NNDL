@@ -1,8 +1,8 @@
 import numpy as np
-from common.Activation import ReLU, Softmax, delta_softmax
-from common.Weight_Init import He
-from common.Logger import Logger
-from common.Loss import CrossEntropy
+from common.activation import ReLU, Softmax
+from common.weight_Init import He
+from common.logger import Logger
+from common.loss import CrossEntropy
 
 
 
@@ -112,12 +112,7 @@ class NeuralNetwork():
         """
         delta=self.output_activation.derivate(self.activations[-1],t)
         for i in range(self.num_layers, 1, -1):
-            self.logger.print(self.pre_activations[i-1].shape,"shape")
-            self.logger.print(delta.shape,"shape delta")
-            self.logger.print(self.weights[i-1].shape,"shape w")
-            self.logger.print((self.weights[i-1].T @ delta).shape,"shape2")
-            self.logger.print((self.weights[i-1].T @ delta).T.shape,"shape3")
-            delta = self.fun_activation.derivate(self.pre_activations[i-1])@(self.weights[i-1].T @ delta).T
+            delta = self.fun_activation.derivate(self.pre_activations[i-2]) * (self.weights[i-1].T @ delta) # i-1 layer in cui sto i-2 layer precedente
             self.logger.print_matrix(delta,f"delta {i-1}")  
             
 

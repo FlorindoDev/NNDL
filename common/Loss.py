@@ -1,5 +1,5 @@
 import numpy as np
-from .Logger import Logger
+from .logger import Logger
 
 logger = Logger()
 

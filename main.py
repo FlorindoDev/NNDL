@@ -1,7 +1,7 @@
 from Model.NeuralNetwork import NeuralNetwork as nn
-from common.Activation import ReLU, softmax
-from common.Weight_Init import Glorot, He
-from common.Loss import CrossEntropy
+from common.activation import ReLU, Softmax
+from common.weight_Init import Glorot, He
+from common.loss import CrossEntropy
 import numpy as np
 from tensorflow.keras.datasets import mnist
 
@@ -22,6 +22,6 @@ x_test  = x_test.reshape(x_test.shape[0], -1)
 rete = nn([784,500,400,10]) # creo la rete
 input=np.atleast_2d(x_train[0:100]) # prendo input che è una matrice
 label=np.atleast_1d(y_train[0:100]) # label di ogni input (è un vettore per ora)
-print(label)
-rete.train(input,label,1,12)
+#print(label)
+rete.train(input,label,1,20)
 #rete.forward(input)
