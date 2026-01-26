@@ -104,8 +104,8 @@ class NeuralNetwork():
     
     def backward(self, X, t):
         delta = self.output_activation.derivate(self.activations[-1], t)
-        deltas = [delta]
-        for i in range(self.num_layers - 1, 0, -1):
+        deltas = [delta] # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
+        for i in range(self.num_layers - 1, 0, -1): # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
             delta_next = deltas[-1]
             delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next)
             deltas.append(delta)
