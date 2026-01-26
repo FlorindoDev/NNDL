@@ -9,8 +9,8 @@ def CrossEntropy(y, t):
     t : array (N, C)  -> target one-hot per riga
     """
     
-    loss = np.sum(-np.sum(t * np.log(y), axis=0))
-    logger.print(loss,"LOSS")
+    loss = np.sum(-np.sum(t * np.log(y), axis=0)) # somma del vettore di loss
+    #logger.print(loss,"LOSS")
     return loss
     
     

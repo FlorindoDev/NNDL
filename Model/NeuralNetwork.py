@@ -99,26 +99,18 @@ class NeuralNetwork():
         
 
         #self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
-        self.logger.print_matrix(self.activations, 'matrice dei activations') 
+        #self.logger.print_matrix(self.activations, 'matrice dei activations') 
         
     
     def backward(self, X, t):
-        """
-        Backward propagation - calcola i gradienti.
-        
-        Args:
-            X: input data
-            y: target labels
-        """
-        delta=self.output_activation.derivate(self.activations[-1],t)
-        for i in range(self.num_layers, 1, -1):
-            delta = self.fun_activation.derivate(self.pre_activations[i-2]) * (self.weights[i-1].T @ delta) # i-1 layer in cui sto i-2 layer precedente
-            self.logger.print_matrix(delta,f"delta {i-1}")  
-            
+        delta = self.output_activation.derivate(self.activations[-1], t)
+        deltas = [delta]
+        for i in range(self.num_layers - 1, 0, -1):
+            delta_next = deltas[-1]
+            delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next)
+            deltas.append(delta)
+        print(deltas.__len__())
 
-
-
-        pass
     
     def update_weights(self):
         """Aggiorna i pesi usando i gradienti calcolati."""
@@ -141,17 +133,9 @@ class NeuralNetwork():
             for start in range(0, len(X_train), batch_size):
                 batch = np.atleast_2d(X_train[start:start+batch_size])
                 target = np.atleast_1d(y_train[start:start+batch_size])
-                
-                t = np.eye(self.num_classes)[target].T
-                
-                self.forward(batch)
-
-                
+                t = np.eye(self.num_classes)[target].T 
+                self.forward(batch)                
                 self.loss(self.activations[self.num_layers - 1], t) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
-                
-                # Qui abbiamo l'errore del Batch e ora bisogna calcolare la derivata
-                # TODO: dopo dobbiamo fare backprop e update dei pesi
-        
                 self.backward(X_train,t)
                
                 self.activations = []  

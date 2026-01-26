@@ -10,18 +10,8 @@ from tensorflow.keras.datasets import mnist
 x_train = x_train.reshape(x_train.shape[0], -1)
 x_test  = x_test.reshape(x_test.shape[0], -1)
 
-#print(y_train[0:500])  # (60000, 784)
 
-#y = np.atleast_2d([[0.4,0.7],
-#                   [0.6,0.3]]
-#                )
-#t =  np.atleast_2d([[0,1],[1,0]])
-#CrossEntropy(y,t)
-
-
-rete = nn([784,500,400,10]) # creo la rete
-input=np.atleast_2d(x_train[0:100]) # prendo input che è una matrice
-label=np.atleast_1d(y_train[0:100]) # label di ogni input (è un vettore per ora)
-#print(label)
-rete.train(input,label,1,20)
-#rete.forward(input)
+rete = nn([784,4,56,57,10]) # creo la rete
+input=np.atleast_2d(x_train[0:1]) # prendo input che è una matrice
+label=np.atleast_1d(y_train[0:1]) # label di ogni input (è un vettore per ora)
+rete.train(input,label,1,1)
