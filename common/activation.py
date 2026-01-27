@@ -25,15 +25,29 @@ def LReLU(a):
     return np.maximum(a, alfa * a)
 
 
-def fun_softmax(a):
-    a = np.asarray(a)
-    exp_a = np.exp(a)
-    probs = exp_a / np.sum(exp_a, axis=0, keepdims=True)
+# def fun_softmax(a):
+#     a = np.asarray(a)
+#     exp_a = np.exp(a)
+#     probs = exp_a / np.sum(exp_a, axis=0, keepdims=True)
     
-    #col_sums = np.sum(probs, axis=0)
-    #logger.print(col_sums, "softmax col sums")
+#     #col_sums = np.sum(probs, axis=0)
+#     #logger.print(col_sums, "softmax col sums")
 
-    return probs
+#     return probs
+
+def fun_softmax(a):
+    a = np.asarray(a, dtype=np.float64)
+
+    # softmax per colonne (axis=0): sottrai il max di ogni colonna
+    a = a - np.max(a, axis=0, keepdims=True)
+
+    exp_a = np.exp(a)
+    denom = np.sum(exp_a, axis=0, keepdims=True)
+
+    # opzionale: protezione extra (in teoria non serve dopo max-shift)
+    denom = np.maximum(denom, 1e-12)
+
+    return exp_a / denom
     
 
 def delta_softmax(y,t):

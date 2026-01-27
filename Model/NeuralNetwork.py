@@ -9,7 +9,7 @@ from common.loss import CrossEntropy
 class NeuralNetwork():
 
     def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
-             learning_rate=2, weight_init=He, loss=CrossEntropy, logger=None):
+             learning_rate=0.1, weight_init=He, loss=CrossEntropy, logger=None):
         """
         Inizializza la rete neurale.
         
@@ -67,7 +67,27 @@ class NeuralNetwork():
         #self.logger.print_matrix(self.weights, 'matrice dei pesi')
         #self.logger.print_matrix(self.biases, 'matrice dei biases') 
         
+        
+    def _compute_delta(self,t):
+        delta = self.output_activation.derivate(self.activations[-1], t)
+        deltas = [delta] # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
+
+
+        for i in range(self.num_layers - 1, 0, -1): # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
+            delta_next = deltas[-1]
+            delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next) # i - 1 pensalo come il layer corrente
+            deltas.append(delta)
+
+        deltas.reverse()
+
+        return deltas
     
+    def _compute_gradient(self, X, deltas):
+        self.dW.append(deltas[0] @ X)
+        
+        for i in range(1,self.num_layers) : 
+            self.dW.append(deltas[i] @ self.activations[i - 1].T)
+
     def forward(self, X): 
         """
         Forward propagation.
@@ -98,33 +118,27 @@ class NeuralNetwork():
             
         
 
-        #self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
-        #self.logger.print_matrix(self.activations, 'matrice dei activations') 
-        
+        self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
+        self.logger.print_matrix(self.activations, 'matrice dei activations') 
     
+
     def backward(self, X, t):
         self.dW = []
-        delta = self.output_activation.derivate(self.activations[-1], t)
-        deltas = [delta] # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
-        for i in range(self.num_layers - 1, 0, -1): # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
-            delta_next = deltas[-1]
-            delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next) # i - 1 pensalo come il layer corrente
-            deltas.append(delta)
-        deltas.reverse()
-        # adesso finalmente possiamo computare le varie derivate dei pesi
-        self.dW.append(deltas[0] @ X) # qua mi da 0 e non capisco perchè
+        deltas = self._compute_delta(t)
+        self._compute_gradient(X, deltas)
         
-        for i in range(self.num_layers - 1) : 
-            current_layer = i + 1 # layer corrente
-            self.dW.append(deltas[current_layer] @ self.activations[current_layer - 1].T)
-        
+
             
     def update_weights(self):
-        for i in range(self.num_layers):
-            W_before = self.weights[i].copy()  
+        #self.logger.print_matrix(self.weights, 'matrice dei pesi')
+        #self.logger.print_matrix(self.dW, "Gradienti")
 
-            print(self.dW[i])
+        for i in range(self.num_layers):
+            dW = np.atleast_2d(self.dW[i])
+            #self.weights[i] = self.weights[i] - (np.where(dW[i] < 0, -1, 1) * 1)
+            self.weights[i] = self.weights[i] - (dW[i] * self.learning_rate)
         
+        #self.logger.print_matrix(self.weights, 'matrice dei pesi')
 
 
 
@@ -144,18 +158,20 @@ class NeuralNetwork():
         """
         
     
-        for _ in range(epochs):
+        for epoche in range(epochs):
+            loss = []
             for start in range(0, len(X_train), batch_size):
                 batch = np.atleast_2d(X_train[start:start+batch_size])
                 target = np.atleast_1d(y_train[start:start+batch_size])
                 t = np.eye(self.num_classes)[target].T 
                 self.forward(batch)                
-                self.loss(self.activations[self.num_layers - 1], t) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
+                loss.append(self.loss(self.activations[self.num_layers - 1], t)) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
                 # la loss che uscirà sarà un numero che sarà la somma delle loss sui singoli esempi del batch
-                self.backward(X_train,t)
-                #self.update_weights()
+                self.backward(batch,t)
+                self.update_weights()
                 self.activations = []  
                 self.pre_activations = []
+            print(f"loss in epoca {epoche}: {loss[-1]}")
 
         
 

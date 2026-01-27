@@ -40,3 +40,4 @@ class Logger():
     
     def print(self, value, name=None):
         print(f'{name}:{value}\n')
+    
