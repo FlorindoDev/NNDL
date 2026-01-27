@@ -16,7 +16,7 @@ x_test  = x_test.reshape(x_test.shape[0], -1).astype(np.float32) / 255.0
 rete = nn([784,100,10]) # creo la rete
 input=np.atleast_2d(x_train) # prendo input che è una matrice
 label=np.atleast_1d(y_train) # label di ogni input (è un vettore per ora)
-rete.train(input,label,20,32)
+rete.train(input,label,30,32)
 
 input_pre = np.atleast_2d(x_test)
 output_pre = np.atleast_1d(y_test)

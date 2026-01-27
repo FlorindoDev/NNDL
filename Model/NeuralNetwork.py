@@ -95,6 +95,9 @@ class NeuralNetwork():
             self.dW.append((deltas[i] @ self.activations[i - 1].T) / batch_size)
             self.db.append(np.sum(deltas[i], axis=1, keepdims=True).T / batch_size)
 
+    def _one_hot(self,target):
+        return np.eye(self.num_classes)[target].T
+
     def forward(self, X): 
         """
         Forward propagation.
@@ -105,22 +108,30 @@ class NeuralNetwork():
         Returns:
             output: prediction della rete
         """
-        self.pre_activations.append((self.weights[0] @ X.T) + self.biases[0].T)
+
+        self.activations = []  
+        self.pre_activations = []
+        
+
+        pre_activation_first_layer = (self.weights[0] @ X.T) + self.biases[0].T
+        self.pre_activations.append(pre_activation_first_layer)
 
         #Se ho un singolo layer usa l'attivazione di output
         if self.num_layers == 1:
-            self.activations.append(self.output_activation.activation(self.pre_activations[0]))
+            self.activations.append(self.output_activation.activation(pre_activation_first_layer))
         else:
-            self.activations.append(self.fun_activation.activation(self.pre_activations[0]))
+            self.activations.append(self.fun_activation.activation(pre_activation_first_layer))
          
         for step in range(1,self.num_layers):
 
-            self.pre_activations.append((self.weights[step] @ self.activations[step-1]) + self.biases[step].T)
+            pre_activation_layer = (self.weights[step] @ self.activations[step-1]) + self.biases[step].T
+
+            self.pre_activations.append(pre_activation_layer)
             
             if step == self.num_layers - 1 :
-                self.activations.append(self.output_activation.activation(self.pre_activations[step]))
+                self.activations.append(self.output_activation.activation(pre_activation_layer))
             else:
-                self.activations.append(self.fun_activation.activation(self.pre_activations[step]))
+                self.activations.append(self.fun_activation.activation(pre_activation_layer))
             
 
         self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
@@ -137,6 +148,9 @@ class NeuralNetwork():
 
             
     def update_weights(self):
+        """
+        Aggiorna i pesi
+        """
         for i in range(self.num_layers):
             self.weights[i], self.biases[i] = self.update_rule(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
 
@@ -158,19 +172,25 @@ class NeuralNetwork():
 
         for epoche in range(epochs):
             for start in range(0, len(X_train), batch_size):
+
                 batch = np.atleast_2d(X_train[start:start+batch_size])
                 target = np.atleast_1d(y_train[start:start+batch_size])
-                t = np.eye(self.num_classes)[target].T 
-                self.forward(batch)                
-                self.batch_losses.append(self.loss(self.activations[self.num_layers - 1], t)) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
+
+                one_hot = self._one_hot(target)
+
+                self.forward(batch)   
+
                 # la loss che uscirà sarà un numero che sarà la somma delle loss sui singoli esempi del batch
-                self.backward(batch,t)
+                #qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)             
+                self.batch_losses.append(self.loss(self.activations[self.num_layers - 1], one_hot)) 
+                
+                self.backward(batch,one_hot)
+
                 self.update_weights()
-                self.activations = []  
-                self.pre_activations = []
-            
+
+                
             self.train_losses.append(self.batch_losses[-1])
-            self.logger.print(self.train_losses[-1], f"loss in epoca {epoche + 1} ", True)
+            self.logger.print(self.train_losses[-1], f"loss in epoca {epoche + 1}", True)
 
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
@@ -180,51 +200,43 @@ class NeuralNetwork():
 
 
             
-
-        
-
-        
     def evaluate(self, X_test, y_test):
         """Valuta le performance su test set."""
-        
-        correct = 0
-        total = len(X_test) #l'accuracy è N_CORRETTI \ N
-        self.test_losses = []
-        for i in range(total) : 
-            x = np.atleast_2d(X_test[i]) 
-            y = y_test[i]
-            t = np.eye(self.num_classes)[y].T 
 
-            activations = self.forward(x)
-            # self.test_losses.append(self.loss(activations,t))
+        X = np.atleast_2d(X_test)
+        y = np.atleast_1d(y_test)
+        if len(X) != len(y):
+            raise ValueError("X_test e y_test devono avere la stessa lunghezza.")
 
-            output = self.activations[self.num_layers - 1] #ultima attivazione della rete (numero di classi,1)
-            # calcolo arg_max dell'output
-            y_pred = np.argmax(output,axis=0)
-            if y_pred[0] == y:
-                correct+=1
-            self.activations = []
-            self.pre_activations = []
-        accuracy = correct / total
-        
+        #self.test_losses = []
+
+        outputs = self.forward(X)
+        y_pred = np.argmax(outputs, axis=0)
+        accuracy = np.mean(y_pred == y)
+
+        # Facoltativo: loss sul test set
+        # one_hot = self._one_hot(y)
+        # self.test_losses.append(self.loss(outputs, one_hot))
+
         # Grafico training
-        plt.figure()
-        plt.plot(self.train_losses)
-        plt.xlabel("Epoch")
-        plt.ylabel("Training Loss")
-        plt.title("Training Error Curve")
-        plt.grid(True)
+        if hasattr(self, "train_losses") and len(self.train_losses) > 0:
+            plt.figure()
+            plt.plot(self.train_losses)
+            plt.xlabel("Epoch")
+            plt.ylabel("Training Loss")
+            plt.title("Training Error Curve")
+            plt.grid(True)
 
         # Grafico test
-        # plt.figure()
-        # plt.plot(self.test_losses)
-        # plt.xlabel("Epoch")
-        # plt.ylabel("Test / Validation Loss")
-        # plt.title("Test Error Curve")
-        # plt.grid(True)
+        # if len(self.test_losses) > 0:
+        #     plt.figure()
+        #     plt.plot(self.test_losses)
+        #     plt.xlabel("Epoch")
+        #     plt.ylabel("Test / Validation Loss")
+        #     plt.title("Test Error Curve")
+        #     plt.grid(True)
 
         plt.show()
 
-
         print(accuracy)
-        #self.logger.print(accuracy, "Accuracy sul test set: ", True)
+        # self.logger.print(accuracy, "Accuracy sul test set: ", True)

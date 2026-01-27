@@ -43,5 +43,5 @@ class Logger():
         if not self.active and not bypass:
             return
     
-        print(f'{name}:{value}\n')
+        print(f'{name}: {value}\n')
     
