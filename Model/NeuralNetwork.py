@@ -137,7 +137,7 @@ class NeuralNetwork():
             
     def update_weights(self):
         for i in range(self.num_layers):
-            self.weights[i], self.biases[i] = standard_update_weight(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
+            self.weights[i], self.biases[i] = self.update_rule(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
 
     
     def train(self, X_train, y_train, epochs=1, batch_size=32, verbose=True):
