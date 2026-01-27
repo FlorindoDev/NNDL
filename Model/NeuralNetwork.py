@@ -9,7 +9,7 @@ from common.loss import CrossEntropy
 class NeuralNetwork():
 
     def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
-             learning_rate=0.1, weight_init=He, loss=CrossEntropy, logger=None):
+             learning_rate=0.01, weight_init=He, loss=CrossEntropy, logger=None):
         """
         Inizializza la rete neurale.
         
@@ -64,8 +64,8 @@ class NeuralNetwork():
             self.weights.append(W)
             self.biases.append(b)
 
-        #self.logger.print_matrix(self.weights, 'matrice dei pesi')
-        #self.logger.print_matrix(self.biases, 'matrice dei biases') 
+        self.logger.print_matrix(self.weights, 'matrice dei pesi')
+        self.logger.print_matrix(self.biases, 'matrice dei biases') 
         
         
     def _compute_delta(self,t):
@@ -84,9 +84,11 @@ class NeuralNetwork():
     
     def _compute_gradient(self, X, deltas):
         self.dW.append(deltas[0] @ X)
+        self.db.append(np.sum(deltas[0], axis=1, keepdims=True).T)
         
         for i in range(1,self.num_layers) : 
             self.dW.append(deltas[i] @ self.activations[i - 1].T)
+            self.db.append(np.sum(deltas[i], axis=1, keepdims=True).T)
 
     def forward(self, X): 
         """
@@ -124,6 +126,7 @@ class NeuralNetwork():
 
     def backward(self, X, t):
         self.dW = []
+        self.db = []
         deltas = self._compute_delta(t)
         self._compute_gradient(X, deltas)
         
@@ -136,7 +139,9 @@ class NeuralNetwork():
         for i in range(self.num_layers):
             dW = np.atleast_2d(self.dW[i])
             #self.weights[i] = self.weights[i] - (np.where(dW[i] < 0, -1, 1) * 1)
-            self.weights[i] = self.weights[i] - (dW[i] * self.learning_rate)
+            self.weights[i] = self.weights[i] - (dW * self.learning_rate)
+            db = np.atleast_2d(self.db[i])
+            self.biases[i] = self.biases[i] - (db * self.learning_rate)
         
         #self.logger.print_matrix(self.weights, 'matrice dei pesi')
 
@@ -172,6 +177,8 @@ class NeuralNetwork():
                 self.activations = []  
                 self.pre_activations = []
             print(f"loss in epoca {epoche}: {loss[-1]}")
+            self.logger.print_matrix(self.weights, 'matrice dei pesi')
+            self.logger.print_matrix(self.biases, 'matrice dei biases') 
 
         
 
