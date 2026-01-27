@@ -8,8 +8,13 @@ def standard_update_weight(weight,dW,biase,db,learning_rate):
     return weight, biase
 
 
-def rprop():
+def rprop(weight,dW,biase,db):
+
+
+    dW = np.atleast_2d(dW)
+    weight = weight - np.sign(dW) 
     pass
 
 def adam():
     pass
+

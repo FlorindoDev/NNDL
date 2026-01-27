@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 from common.activation import ReLU, Softmax
 from common.weight_Init import He
 from common.logger import Logger
@@ -68,7 +70,6 @@ class NeuralNetwork():
 
         self.logger.print_matrix(self.weights, 'matrice dei pesi')
         self.logger.print_matrix(self.biases, 'matrice dei biases') 
-        
         
     def _compute_delta(self,t):
         delta = self.output_activation.derivate(self.activations[-1], t)
@@ -140,7 +141,7 @@ class NeuralNetwork():
             self.weights[i], self.biases[i] = self.update_rule(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
 
     
-    def train(self, X_train, y_train, epochs=1, batch_size=32, verbose=True):
+    def train(self, X_train, y_train, epochs=1, batch_size=32):
         """
         Addestra la rete.
         
@@ -149,30 +150,81 @@ class NeuralNetwork():
             y_train: training labels
             epochs: numero di epoche
             batch_size: dimensione del batch
-            verbose: se stampare info durante training
         """
+
+        self.batch_losses = []
+        self.train_losses = []
         
-    
+
         for epoche in range(epochs):
-            loss = []
             for start in range(0, len(X_train), batch_size):
                 batch = np.atleast_2d(X_train[start:start+batch_size])
                 target = np.atleast_1d(y_train[start:start+batch_size])
                 t = np.eye(self.num_classes)[target].T 
                 self.forward(batch)                
-                loss.append(self.loss(self.activations[self.num_layers - 1], t)) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
+                self.batch_losses.append(self.loss(self.activations[self.num_layers - 1], t)) # qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)
                 # la loss che uscirà sarà un numero che sarà la somma delle loss sui singoli esempi del batch
                 self.backward(batch,t)
                 self.update_weights()
                 self.activations = []  
                 self.pre_activations = []
-            print(f"loss in epoca {epoche}: {loss[-1]}")
+            
+            self.train_losses.append(self.batch_losses[-1])
+            self.logger.print(self.train_losses[-1], f"loss in epoca {epoche + 1} ", True)
+
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
+        
+        return    
+    
+
+
+            
 
         
 
         
     def evaluate(self, X_test, y_test):
         """Valuta le performance su test set."""
-        pass
+        
+        correct = 0
+        total = len(X_test) #l'accuracy è N_CORRETTI \ N
+        self.test_losses = []
+        for i in range(total) : 
+            x = np.atleast_2d(X_test[i]) 
+            y = y_test[i]
+            t = np.eye(self.num_classes)[y].T 
+
+            activations = self.forward(x)
+            # self.test_losses.append(self.loss(activations,t))
+
+            output = self.activations[self.num_layers - 1] #ultima attivazione della rete (numero di classi,1)
+            # calcolo arg_max dell'output
+            y_pred = np.argmax(output,axis=0)
+            if y_pred[0] == y:
+                correct+=1
+            self.activations = []
+            self.pre_activations = []
+        accuracy = correct / total
+        
+        # Grafico training
+        plt.figure()
+        plt.plot(self.train_losses)
+        plt.xlabel("Epoch")
+        plt.ylabel("Training Loss")
+        plt.title("Training Error Curve")
+        plt.grid(True)
+
+        # Grafico test
+        # plt.figure()
+        # plt.plot(self.test_losses)
+        # plt.xlabel("Epoch")
+        # plt.ylabel("Test / Validation Loss")
+        # plt.title("Test Error Curve")
+        # plt.grid(True)
+
+        plt.show()
+
+
+        print(accuracy)
+        #self.logger.print(accuracy, "Accuracy sul test set: ", True)

@@ -38,6 +38,10 @@ class Logger():
             with np.printoptions(precision=4, suppress=True, linewidth=150):
                 print(matrix)
     
-    def print(self, value, name=None):
+    def print(self, value, name=None, bypass=False):
+
+        if not self.active and not bypass:
+            return
+    
         print(f'{name}:{value}\n')
     
