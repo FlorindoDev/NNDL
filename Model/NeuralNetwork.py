@@ -3,13 +3,14 @@ from common.activation import ReLU, Softmax
 from common.weight_Init import He
 from common.logger import Logger
 from common.loss import CrossEntropy
+from common.update_rule import standard_update_weight
 
 
 
 class NeuralNetwork():
 
     def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
-             learning_rate=0.01, weight_init=He, loss=CrossEntropy, logger=None):
+             learning_rate=0.01, weight_init=He, loss=CrossEntropy, update_rule = standard_update_weight , logger=None):
         """
         Inizializza la rete neurale.
         
@@ -36,6 +37,7 @@ class NeuralNetwork():
         self.learning_rate = learning_rate
         self.weight_init = weight_init
         self.loss = loss
+        self.update_rule = update_rule
         
         self.layer_sizes = layer_sizes
         self.num_layers = len(layer_sizes) - 1
@@ -82,9 +84,10 @@ class NeuralNetwork():
 
         return deltas
     
+    # normalizziamo per batch_size per evitare che  il gradeinte diventi troppo grande per via del aumentare della grandezza del batch
     def _compute_gradient(self, X, deltas):
         batch_size = X.shape[0]
-        self.dW.append((deltas[0] @ X) / batch_size)
+        self.dW.append((deltas[0] @ X) / batch_size)    
         self.db.append(np.sum(deltas[0], axis=1, keepdims=True).T / batch_size)
         
         for i in range(1,self.num_layers) : 
@@ -133,21 +136,8 @@ class NeuralNetwork():
 
             
     def update_weights(self):
-        #self.logger.print_matrix(self.weights, 'matrice dei pesi')
-        #self.logger.print_matrix(self.dW, "Gradienti")
-
         for i in range(self.num_layers):
-            dW = np.atleast_2d(self.dW[i])
-            #self.weights[i] = self.weights[i] - (np.where(dW[i] < 0, -1, 1) * 1)
-            self.weights[i] = self.weights[i] - (dW * self.learning_rate)
-            db = np.atleast_2d(self.db[i])
-            self.biases[i] = self.biases[i] - (db * self.learning_rate)
-        
-        #self.logger.print_matrix(self.weights, 'matrice dei pesi')
-
-
-
-
+            self.weights[i], self.biases[i] = standard_update_weight(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
 
     
     def train(self, X_train, y_train, epochs=1, batch_size=32, verbose=True):
