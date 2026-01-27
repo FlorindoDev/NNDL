@@ -11,7 +11,7 @@ class Logger():
 
 
 
-    def print_matrix(self, matrix, name=None):
+    def print_matrix(self, matrix, name=None,bypass=False):
         """
         Stampa una matrice (o lista di matrici) in modo leggibile.
         
@@ -20,7 +20,7 @@ class Logger():
             name: nome opzionale da stampare prima della matrice
         """
         
-        if not self.active:
+        if not self.active and not bypass:
             return
 
         if name:

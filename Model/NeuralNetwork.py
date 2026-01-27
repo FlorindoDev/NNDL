@@ -83,12 +83,13 @@ class NeuralNetwork():
         return deltas
     
     def _compute_gradient(self, X, deltas):
-        self.dW.append(deltas[0] @ X)
-        self.db.append(np.sum(deltas[0], axis=1, keepdims=True).T)
+        batch_size = X.shape[0]
+        self.dW.append((deltas[0] @ X) / batch_size)
+        self.db.append(np.sum(deltas[0], axis=1, keepdims=True).T / batch_size)
         
         for i in range(1,self.num_layers) : 
-            self.dW.append(deltas[i] @ self.activations[i - 1].T)
-            self.db.append(np.sum(deltas[i], axis=1, keepdims=True).T)
+            self.dW.append((deltas[i] @ self.activations[i - 1].T) / batch_size)
+            self.db.append(np.sum(deltas[i], axis=1, keepdims=True).T / batch_size)
 
     def forward(self, X): 
         """
@@ -100,7 +101,6 @@ class NeuralNetwork():
         Returns:
             output: prediction della rete
         """
-
         self.pre_activations.append((self.weights[0] @ X.T) + self.biases[0].T)
 
         #Se ho un singolo layer usa l'attivazione di output
@@ -118,10 +118,10 @@ class NeuralNetwork():
             else:
                 self.activations.append(self.fun_activation.activation(self.pre_activations[step]))
             
-        
 
         self.logger.print_matrix(self.pre_activations, 'matrice dei pre_activations')
         self.logger.print_matrix(self.activations, 'matrice dei activations') 
+        return self.activations[self.num_layers-1]
     
 
     def backward(self, X, t):
