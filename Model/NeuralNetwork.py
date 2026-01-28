@@ -166,11 +166,9 @@ class NeuralNetwork():
             batch_size: dimensione del batch
         """
 
-        self.batch_losses = []
         self.train_losses = []
-        
-
         for epoche in range(epochs):
+            epoch_batch_losses = []
             for start in range(0, len(X_train), batch_size):
 
                 batch = np.atleast_2d(X_train[start:start+batch_size])
@@ -182,23 +180,21 @@ class NeuralNetwork():
 
                 # la loss che uscirà sarà un numero che sarà la somma delle loss sui singoli esempi del batch
                 #qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)             
-                self.batch_losses.append(self.loss(self.activations[self.num_layers - 1], one_hot)) 
-                
+                loss_val=self.loss(self.activations[self.num_layers - 1], one_hot)
+                epoch_batch_losses.append(loss_val)
                 self.backward(batch,one_hot)
 
                 self.update_weights()
 
-                
-            self.train_losses.append(self.batch_losses[-1])
-            self.logger.print(self.train_losses[-1], f"loss in epoca {epoche + 1}", True)
+            epoch_loss = float(np.mean(epoch_batch_losses))
+            self.train_losses.append(epoch_loss)
+            self.logger.print(epoch_loss, f"loss in epoca {epoche + 1}", True)
 
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
         
         return    
     
-
-
             
     def evaluate(self, X_test, y_test):
         """Valuta le performance su test set."""
