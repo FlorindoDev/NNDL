@@ -5,14 +5,14 @@ from common.activation import ReLU, Softmax
 from common.weight_Init import He
 from common.logger import Logger
 from common.loss import CrossEntropy
-from common.update_rule import standard_update_weight
+from common.update_rule import  standard
 
 
 
 class NeuralNetwork():
 
     def __init__(self, layer_sizes, num_classes=10, activation=ReLU, output_activation=Softmax, 
-             learning_rate=0.01, weight_init=He, loss=CrossEntropy, update_rule = standard_update_weight , logger=None):
+                weight_init=He, loss=CrossEntropy, update_rule = standard , logger=None):
         """
         Inizializza la rete neurale.
         
@@ -36,7 +36,6 @@ class NeuralNetwork():
         self.num_classes = num_classes
         self.fun_activation = activation
         self.output_activation = output_activation
-        self.learning_rate = learning_rate
         self.weight_init = weight_init
         self.loss = loss
         self.update_rule = update_rule
@@ -48,8 +47,8 @@ class NeuralNetwork():
         self.biases = []
         self.activations = []
         self.pre_activations = []
-        self.dW = [] #gradineti pesi lista di matrici
-        self.db = [] #gradienti baias 
+        self.dW = []                #gradineti pesi lista di matrici
+        self.db = []                #gradienti baias 
         
         self._initialize_weights()
       
@@ -73,10 +72,12 @@ class NeuralNetwork():
         
     def _compute_delta(self,t):
         delta = self.output_activation.derivate(self.activations[-1], t)
-        deltas = [delta] # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
 
+        # una lista di matrici che contiene i delta che generano ogni layer, ogni matrice sarà di grandezza (numero di neuroni in quel layer,numero di input)
+        deltas = [delta] 
 
-        for i in range(self.num_layers - 1, 0, -1): # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
+        # è piu naturale cosi, se sono 2 layer(1 output e 1 hidden), fa 1(ultimo layer), 0(primo layer) è come un vettore C con indice che inizia da 0 a n-1
+        for i in range(self.num_layers - 1, 0, -1): 
             delta_next = deltas[-1]
             delta = self.fun_activation.derivate(self.pre_activations[i-1]) * (self.weights[i].T @ delta_next) # i - 1 pensalo come il layer corrente
             deltas.append(delta)
@@ -97,6 +98,13 @@ class NeuralNetwork():
 
     def _one_hot(self,target):
         return np.eye(self.num_classes)[target].T
+
+    def _shuffle(self, X_train, y_train):
+            idx = np.random.permutation(len(X_train))
+            X_train = X_train[idx]
+            y_train = y_train[idx]
+            return X_train, y_train
+
 
     def forward(self, X): 
         """
@@ -138,7 +146,8 @@ class NeuralNetwork():
         self.logger.print_matrix(self.activations, 'matrice dei activations') 
         return self.activations[self.num_layers-1]
     
-
+  
+        
     def backward(self, X, t):
         self.dW = []
         self.db = []
@@ -147,15 +156,23 @@ class NeuralNetwork():
         
 
             
-    def update_weights(self):
+    def update_weights(self,learning_rate):
         """
         Aggiorna i pesi
         """
         for i in range(self.num_layers):
-            self.weights[i], self.biases[i] = self.update_rule(self.weights[i],self.dW[i],self.biases[i],self.db[i],self.learning_rate)
+            self.weights[i],self.biases[i] = self.update_rule(
+                    self.weights[i],
+                    self.dW[i],
+                    self.biases[i],
+                    self.db[i],
+                    learning_rate,
+                    i
+                )
+            
 
     
-    def train(self, X_train, y_train, epochs=1, batch_size=32):
+    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01):
         """
         Addestra la rete.
         
@@ -168,7 +185,10 @@ class NeuralNetwork():
 
         self.train_losses = []
         for epoche in range(epochs):
+            
             epoch_batch_losses = []
+            X_train, y_train = self._shuffle(X_train,y_train)
+
             for start in range(0, len(X_train), batch_size):
 
                 batch = np.atleast_2d(X_train[start:start+batch_size])
@@ -182,9 +202,11 @@ class NeuralNetwork():
                 #qui si potrà sempre calcolare il prodotto perchè l'output sarà sempre un (10,size_of_input) e t sarà sempre (10,size_of_input)             
                 loss_val=self.loss(self.activations[self.num_layers - 1], one_hot)
                 epoch_batch_losses.append(loss_val)
+
+
                 self.backward(batch,one_hot)
 
-                self.update_weights()
+                self.update_weights(learning_rate)
 
             epoch_loss = float(np.mean(epoch_batch_losses))
             self.train_losses.append(epoch_loss)

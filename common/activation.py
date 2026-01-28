@@ -21,19 +21,13 @@ def derivate_ReLU(a):
 
 
 def LReLU(a):
-    alfa = 0.01 # 0 < alfa < 1
+    alfa = 0.2 # 0 < alfa < 1
     return np.maximum(a, alfa * a)
 
 
-# def fun_softmax(a):
-#     a = np.asarray(a)
-#     exp_a = np.exp(a)
-#     probs = exp_a / np.sum(exp_a, axis=0, keepdims=True)
-    
-#     #col_sums = np.sum(probs, axis=0)
-#     #logger.print(col_sums, "softmax col sums")
+def derivate_LReLU(a, alfa=0.2):
+    return np.where(a > 0, 1, alfa)
 
-#     return probs
 
 def fun_softmax(a):
     a = np.asarray(a, dtype=np.float64)
@@ -62,3 +56,5 @@ def delta_softmax(y,t):
 ReLU = Activation(fun_ReLU,derivate_ReLU)
 
 Softmax = Activation(fun_softmax,delta_softmax)
+
+LeakyReLU = Activation(LReLU,derivate_LReLU)
