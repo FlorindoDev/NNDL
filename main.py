@@ -21,10 +21,10 @@ adam = Adam()
 
 
 
-rete = nn(layer_sizes=[784,5,10],update_rule=adam,activation=LeakyReLU,weight_init=Glorot) # creo la rete
+rete = nn(layer_sizes=[784,200,10],update_rule=rprop,activation=LeakyReLU,weight_init=Glorot) # creo la rete
 input=np.atleast_2d(x_train) # prendo input che è una matrice
 label=np.atleast_1d(y_train) # label di ogni input (è un vettore per ora)
-rete.train(input,label,30,1,0.01) # alleno la rete
+rete.train(input,label,200,input.shape[0]) # alleno la rete
 
 input_pre = np.atleast_2d(x_test)
 output_pre = np.atleast_1d(y_test)

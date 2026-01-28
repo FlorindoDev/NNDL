@@ -18,6 +18,88 @@ class StandardUpdateRule(UpdateRule):
     
 
 
+class RProp(UpdateRule):
+    def __init__(self, eta_plus=1.2, eta_minus=0.5, step_max=20, step_min=1e-6):
+        self.eta_plus = eta_plus
+        self.eta_minus = eta_minus
+        self.step_max = step_max
+        self.step_min = step_min
+        self.delta_b = []
+        self.delta_w = []
+        self.prev_dW = [] # gradienti dell'epoca precedente
+        self.prev_dB = []
+
+    def _init(self, dW, db, learning_rate):
+        self.prev_dW.append(np.zeros_like(dW)) 
+        self.prev_dB.append(np.zeros_like(db)) 
+        self.delta_w.append(np.full_like(dW, learning_rate)) 
+        self.delta_b.append(np.full_like(db, learning_rate))
+        
+    def _update_param(self, param, grad, prev_grad, delta):
+        """
+        Helper method per aggiornare un parametro (peso o bias) usando RProp.
+        """
+        # Prodotto tra gradiente attuale e gradiente dell'epoca precedente
+        prod = grad * prev_grad
+        
+        # Se il segno è uguale, aumenta lo step (delta)
+        delta = np.where(
+            prod > 0,
+            np.minimum(delta * self.eta_plus, self.step_max),
+            delta
+        )
+        
+        # Se il segno cambia, diminuisci lo step (delta)
+        delta = np.where(
+            prod < 0,
+            np.maximum(delta * self.eta_minus, self.step_min),
+            delta
+        )
+        
+        # Se il segno è cambiato, il gradiente viene azzerato per non influenzare il prossimo passo
+        grad_updated = np.where(prod < 0, 0, grad)
+        
+        # Aggiorna il parametro
+        param_updated = param - (delta * np.sign(grad_updated))
+        
+        return param_updated, grad_updated, delta
+
+    def __call__(self, weight, dW, biase, db, learning_rate, layer_index=0):
+        """
+            weight : matrice di pesi
+            dW : matrice dei gradienti al tempo T di un layer
+            biase: vettore dei bias
+            db: gradiente dei bias al tempo T
+            layer_index : indice del layer in cui sto aggiornando la matrice
+        """
+        
+        dW = np.atleast_2d(dW)
+        db = np.atleast_2d(db)
+
+        # init della matrice del del layer in cui siamo dato da layer_index
+        # se len(self.prev_dW) == layer_index allora abbiamo abbastanza matrici per ogni layer
+        if len(self.prev_dW) <= layer_index:
+            self._init(dW, db, learning_rate)
+
+        # Aggiornamento Pesi
+        # prev_dW[layer_index] sono i gradienti dell'epoca precedente per i pesi
+        weight, dW, self.delta_w[layer_index] = self._update_param(
+            weight, dW, self.prev_dW[layer_index], self.delta_w[layer_index]
+        )
+
+        # Aggiornamento Bias
+        # prev_dB[layer_index] sono i gradienti dell'epoca precedente per i bias
+        biase, db, self.delta_b[layer_index] = self._update_param(
+            biase, db, self.prev_dB[layer_index], self.delta_b[layer_index]
+        )
+
+        # Aggiorno i gradienti "precedenti" con quelli attuali (modificati) per la prossima iterazione
+        self.prev_dW[layer_index] = dW.copy()
+        self.prev_dB[layer_index] = db.copy()
+        
+        return weight, biase
+
+
 class Adam(UpdateRule):
     def __init__(
         self,
@@ -92,71 +174,6 @@ class Adam(UpdateRule):
 
         return weights, biases
 
-
-
-
-class RProp(UpdateRule):
-    def __init__(self, eta_plus=1.2, eta_minus=0.5, step_max=20, step_min=1e-6):
-        self.eta_plus = eta_plus
-        self.eta_minus = eta_minus
-        self.step_max = step_max
-        self.step_min = step_min
-        self.delta_b = []
-        self.delta_w = []
-        self.prev_dW = [] # gradienti al tempo t-1
-        self.prev_dB = []
-
-
-    def _init(self, dW, db, learning_rate):
-        self.prev_dW.append(np.zeros_like(dW)) 
-        self.prev_dB.append(np.zeros_like(db)) 
-        self.delta_w.append(np.full_like(dW, learning_rate)) 
-        self.delta_b.append(np.full_like(db, learning_rate))
-        
-
-    def __call__(self, weight, dW, biase, db, learning_rate, layer_index=0):
-        #weight : matrice di pesi
-        #dW : matrice dei gradienti al tempo T di un layer
-        #layer_index : indice del layer in cui sto aggiornando la matrice
-        dW = np.atleast_2d(dW)
-        db = np.atleast_2d(db)
-
-        while len(self.prev_dW) <= layer_index:
-            # in questo while entra solo all'inizio quando il layer non ha precedenti
-            self._init(dW , db, learning_rate)
-
-        prod_w = dW * self.prev_dW[layer_index]
-        self.delta_w[layer_index] = np.where(
-            prod_w > 0,
-            np.minimum(self.delta_w[layer_index] * self.eta_plus, self.step_max),
-            self.delta_w[layer_index]
-        )
-        self.delta_w[layer_index] = np.where(
-            prod_w < 0,
-            np.maximum(self.delta_w[layer_index] * self.eta_minus, self.step_min),
-            self.delta_w[layer_index]
-        )
-        dW = np.where(prod_w < 0, 0, dW)
-        weight = weight - (self.delta_w[layer_index] * np.sign(dW))
-
-        prod_b = db * self.prev_dB[layer_index]
-        self.delta_b[layer_index] = np.where(
-            prod_b > 0,
-            np.minimum(self.delta_b[layer_index] * self.eta_plus, self.step_max),
-            self.delta_b[layer_index]
-        )
-        self.delta_b[layer_index] = np.where(
-            prod_b < 0,
-            np.maximum(self.delta_b[layer_index] * self.eta_minus, self.step_min),
-            self.delta_b[layer_index]
-        )
-        db = np.where(prod_b < 0, 0, db)
-        biase = biase - (self.delta_b[layer_index] * np.sign(db))
-
-        self.prev_dW[layer_index] = dW.copy()
-        self.prev_dB[layer_index] = db.copy()
-        
-        return weight, biase
 
 
 standard = StandardUpdateRule()
