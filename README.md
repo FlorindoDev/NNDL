@@ -2,7 +2,7 @@
 
 ## NNDL - Simple Neural Network (MNIST)
 
-Piccola implementazione didattica di una rete neurale fully-connected in NumPy,
+Implementazione didattica di una rete neurale fully-connected in NumPy,
 con training su MNIST. Il codice include attivazioni, loss, inizializzazioni
 pesi e regole di aggiornamento (SGD standard e RProp).
 
