@@ -2,7 +2,7 @@ from Model.NeuralNetwork import NeuralNetwork as nn
 from common.activation import ReLU, Softmax, LeakyReLU
 from common.weight_Init import Glorot, He
 from common.loss import CrossEntropy
-from common.update_rule import RProp, StandardUpdateRule
+from common.update_rule import RProp, StandardUpdateRule,Adam
 import numpy as np
 from tensorflow.keras.datasets import mnist
 from common.logger import Logger
@@ -17,13 +17,14 @@ x_test  = x_test.reshape(x_test.shape[0], -1).astype(np.float32) / 255.0
 
 rprop = RProp()
 standard = StandardUpdateRule()
+adam = Adam()
 
 
 
-rete = nn(layer_sizes=[784,100,100,10],update_rule=rprop,activation=LeakyReLU,weight_init=Glorot) # creo la rete
+rete = nn(layer_sizes=[784,5,10],update_rule=adam,activation=LeakyReLU,weight_init=Glorot) # creo la rete
 input=np.atleast_2d(x_train) # prendo input che è una matrice
 label=np.atleast_1d(y_train) # label di ogni input (è un vettore per ora)
-rete.train(input,label,200,input.shape[0]) # alleno la rete
+rete.train(input,label,30,1,0.01) # alleno la rete
 
 input_pre = np.atleast_2d(x_test)
 output_pre = np.atleast_1d(y_test)
