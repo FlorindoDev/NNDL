@@ -136,9 +136,13 @@ class Adam(UpdateRule):
         dW = np.asarray(dW)
         db = np.asarray(db)
 
-        while len(self.m_w) <= layer_index:
+        #t è l'epoca corrente
+        # t-1 è l'epoca precedente e stanno conservati nei vettori
+
+        if len(self.m_w) <= layer_index:
             self._init_layer(weights, biases)
 
+        # A ogni aggiornamento dei pesi incremento
         if layer_index == 0:
             self.t += 1
         t = self.t
@@ -157,16 +161,9 @@ class Adam(UpdateRule):
 
         m_w_hat = self.m_w[layer_index] / (1.0 - (self.beta1 ** self.t))
         m_b_hat = self.m_b[layer_index] / (1.0 - (self.beta1 ** self.t))
-
-        if self.amsgrad:
-            self.v_w_max[layer_index] = np.maximum(self.v_w_max[layer_index], self.v_w[layer_index])
-            self.v_b_max[layer_index] = np.maximum(self.v_b_max[layer_index], self.v_b[layer_index])
-
-            v_w_hat = self.v_w_max[layer_index] / (1.0 - (self.beta2 ** self.t))
-            v_b_hat = self.v_b_max[layer_index] / (1.0 - (self.beta2 ** self.t))
-        else:
-            v_w_hat = self.v_w[layer_index] / (1.0 - (self.beta2 ** self.t))
-            v_b_hat = self.v_b[layer_index] / (1.0 - (self.beta2 ** self.t))
+       
+        v_w_hat = self.v_w[layer_index] / (1.0 - (self.beta2 ** self.t))
+        v_b_hat = self.v_b[layer_index] / (1.0 - (self.beta2 ** self.t))
 
        
         weights = weights - learning_rate * (m_w_hat / (np.sqrt(v_w_hat) + self.eps))
