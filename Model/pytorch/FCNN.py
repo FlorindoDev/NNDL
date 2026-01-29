@@ -4,7 +4,11 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 from dotenv import load_dotenv
+from torchvision.utils import make_grid
+from tqdm import tqdm
 import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 print("torch:", torch.__version__)
 print("torch.version.hip:", torch.version.hip)
@@ -60,7 +64,7 @@ def train_loop(training_data, model, loss_fn, optimizer,batch_size = 32):
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
 
-    for batch, (X, Y) in enumerate(train_dataloader):
+    for batch, (X, Y) in enumerate(tqdm(train_dataloader)):
         X = X.to(device)
         Y = Y.to(device)
 
@@ -74,9 +78,9 @@ def train_loop(training_data, model, loss_fn, optimizer,batch_size = 32):
         optimizer.step()
         optimizer.zero_grad()
 
-        if batch % 100 == 0:
-            loss_value, current = loss.item(), batch * batch_size + len(X)
-            print(f"loss: {loss_value:>7f}  [{current:>5d}/{size:>5d}]")
+        # if batch % 100 == 0:
+        #     loss_value, current = loss.item(), batch * batch_size + len(X)
+        #     print(f"loss: {loss_value:>7f}  [{current:>5d}/{size:>5d}]")
 
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
@@ -121,12 +125,25 @@ loss_fn = nn.CrossEntropyLoss()
 learning_rate = 0.01
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-epochs = 5
+epochs = 10
 for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
+    print(f"\n\nEpoch {t+1}\n-------------------------------")
     train_loop(training_data, model, loss_fn, optimizer)
 
 test_loop(test_data, model, loss_fn)
 
 # X, y = next(iter(test_dataloader))
 # print(nn.Softmax(dim=1)(model(X[0])))
+
+# def imshow(img):
+#    npimg = img.numpy()
+#    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+#    plt.show()
+
+# prova = DataLoader(test_data, batch_size=32, shuffle=False)
+# # get some random training images
+# dataiter = iter(prova)
+# images, labels = next(dataiter)
+# labels
+# # show images
+# imshow(make_grid(images))

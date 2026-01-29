@@ -4,7 +4,9 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 from dotenv import load_dotenv
+import torch.nn.functional as F
 import os
+from tqdm import tqdm
 
 print("torch:", torch.__version__)
 print("torch.version.hip:", torch.version.hip)
@@ -37,49 +39,58 @@ test_data = datasets.MNIST(
     transform=ToTensor()
 )
 
+training_dataloader = DataLoader(training_data, batch_size=32, shuffle=False)
+test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
 
-class FCNN(nn.Module):
-    def __init__(self,layers):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.layers = layers
+class CNN(nn.Module):
+   def __init__(self, in_channels, num_classes):
 
-    def forward(self, X):
-        X = self.flatten(X)
-        logits = self.layers(X)
-        return logits
+       """
+       Building blocks of convolutional neural network.
+
+       Parameters:
+           * in_channels: Number of channels in the input image (for grayscale images, 1)
+           * num_classes: Number of classes to predict. In our problem, 10 (i.e digits from  0 to 9).
+       """
+       super(CNN, self).__init__()
+
+       # 1st convolutional layer
+       self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=8, kernel_size=3, padding=1)
+       # Max pooling layer
+       self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+       # 2nd convolutional layer
+       self.conv2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1)
+       # Fully connected layer
+       self.fc1 = nn.Linear(16 * 7 * 7, num_classes)
+
+   def forward(self, x):
+       """
+       Define the forward pass of the neural network.
+
+       Parameters:
+           x: Input tensor.
+
+       Returns:
+           torch.Tensor
+               The output tensor after passing through the network.
+       """
+       x = F.relu(self.conv1(x))  # Apply first convolution and ReLU activation
+       x = self.pool(x)           # Apply max pooling
+       x = F.relu(self.conv2(x))  # Apply second convolution and ReLU activation
+       x = self.pool(x)           # Apply max pooling
+       x = x.reshape(x.shape[0], -1)  # Flatten the tensor
+       x = self.fc1(x)            # Apply fully connected layer
+       return x
 
 
-def train_loop(training_data, model, loss_fn, optimizer,batch_size = 32):
-    train_dataloader = DataLoader(training_data, batch_size, shuffle=True)
-    size = len(train_dataloader.dataset)
-    model.train()
+model = CNN(in_channels=1, num_classes=10).to(device)
+print(model)
+# Define the loss function
+criterion = nn.CrossEntropyLoss()
 
-
-    if next(model.parameters()).device.type == "cuda":
-        torch.cuda.synchronize()
-
-    for batch, (X, Y) in enumerate(train_dataloader):
-        X = X.to(device)
-        Y = Y.to(device)
-
-        logits = model(X)
-
-        if batch == 0:
-            print("Batch on:", X.device, "Logits on:", logits.device)
-
-        loss = loss_fn(logits, Y)
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if batch % 100 == 0:
-            loss_value, current = loss.item(), batch * batch_size + len(X)
-            print(f"loss: {loss_value:>7f}  [{current:>5d}/{size:>5d}]")
-
-    if next(model.parameters()).device.type == "cuda":
-        torch.cuda.synchronize()
+# Define the optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
 def test_loop(test_data, model, loss_fn,batch_size=32):
@@ -102,29 +113,19 @@ def test_loop(test_data, model, loss_fn,batch_size=32):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
+num_epochs=10
+for epoch in range(num_epochs):
+ # Iterate over training batches
+   print(f"Epoch [{epoch + 1}/{num_epochs}]")
+
+   for batch_index, (data, targets) in enumerate(tqdm(training_dataloader)):
+       data = data.to(device)
+       targets = targets.to(device)
+       scores = model(data)
+       loss = criterion(scores, targets)
+       optimizer.zero_grad()
+       loss.backward()
+       optimizer.step()
 
 
-layer = nn.Sequential(
-            nn.Linear(28*28,128),
-            nn.ReLU(),
-            nn.Linear(128,64),
-            nn.ReLU(),
-            nn.Linear(64,10)
-        )
-
-model = FCNN(layer).to(device)
-
-
-print("Model on:", next(model.parameters()).device)
-
-loss_fn = nn.CrossEntropyLoss()
-learning_rate = 0.01
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-epochs = 5
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train_loop(training_data, model, loss_fn, optimizer)
-
-test_loop(test_data, model, loss_fn)
-
+test_loop(training_data, model, criterion)
