@@ -22,14 +22,12 @@ adam = Adam()
 
 
 
-rete = nn(layer_sizes=[784,128,64,10],update_rule=standard,activation=LeakyReLU,weight_init=Glorot) # creo la rete
+rete = nn(layer_sizes=[784,128,64,10],update_rule=adam,activation=LeakyReLU,weight_init=Glorot) # creo la rete
 
 
-rete.train(x_train,y_train,20,32,early_stopping=False,X_validation=x_val,y_validation=y_val,pacience=15) # alleno la rete
+rete.train(x_train,y_train,20,32,early_stopping=True,X_validation=x_val,y_validation=y_val,patience=15) # alleno la rete
 
-input_pre = np.atleast_2d(x_test)
-output_pre = np.atleast_1d(y_test)
 # print(y_test[0:20])
 # logger.print_matrix(rete.forward(input_pre),"predizioni",True)
-rete.evaluate(input_pre,output_pre)
+rete.evaluate(x_test,y_test,True)
 

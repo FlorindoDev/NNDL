@@ -44,4 +44,29 @@ class Logger():
             return
     
         print(f'{name}: {value}\n')
+
+    def print_triaing_progress(self,epoch,epochs,val_loss,train_loss,current_patience, patience, bypass=False):
+
+        if not self.active and not bypass:
+            return
+
+        print(f"\n\nEpoch {epoch + 1}/{epochs}\n" + "-" * 40)
+        print(f"Training loss: {train_loss:.6f}")
+        print(f"Validation loss: {val_loss:.6f}")
+        if(current_patience == patience):
+            print(f"✓ New best model saved (loss: {val_loss:.6f})")
+        elif(current_patience < patience and current_patience != 0):
+            print(f"No improvement. Patience: {current_patience}/{patience}")
+        else:
+            print(f"No improvement. Patience: {current_patience}/{patience}")
+            print("\n⚠ Early stopping triggered!")
     
+    def print_test_evaluation(self,accuracy,  bypass=False):
+
+        if not self.active and not bypass:
+            return
+
+        print("\n" + "=" * 50)
+        print("FINAL TEST EVALUATION")
+        print("=" * 50)
+        print(f"Test Error:\n Accuracy: {100 * accuracy:>0.1f}%")

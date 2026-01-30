@@ -202,7 +202,7 @@ class NeuralNetwork():
             
 
     
-    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01, early_stopping=False, X_validation=[], y_validation=[],pacience=5):
+    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01, early_stopping=False, X_validation=[], y_validation=[],patience=5):
         """
         Addestra la rete.
         
@@ -212,7 +212,7 @@ class NeuralNetwork():
             epochs: numero di epoche
             batch_size: dimensione del batch
         """
-        local_pacience = pacience
+        local_patience = patience
         self.train_losses = []
         best_weights = []
         best_biases = []
@@ -243,34 +243,32 @@ class NeuralNetwork():
 
             if early_stopping:
                 self._compute_validation_loss(X_validation,y_validation,batch_size)
-                self.logger.print(self.validation_loss[-1], f"loss validation in epoca {epoche + 1}", True)
                 
                 find_best = self.early_stopping()
                 
                 if find_best:
                     #significa che ho trovato un minimo val_loss
-                    local_pacience = pacience
+                    local_patience = patience
                     best_weights = self.weights.copy()
                     best_biases = self.biases.copy()
                 else:
                     # non abbiamo trovato uno migliore, decrementa
-                    local_pacience -= 1
+                    local_patience -= 1
 
             
             
             epoch_loss = float(np.mean(epoch_batch_losses))
             self.train_losses.append(epoch_loss)
-            self.logger.print(epoch_loss, f"loss in epoca {epoche + 1}", True)
 
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
 
+            self.logger.print_triaing_progress(epoche,epochs,self.validation_loss[-1],self.train_losses[-1],local_patience,patience,True)
 
-            if early_stopping and local_pacience == 0:
+            if early_stopping and local_patience == 0:
                 # Ripristina i migliori pesi e bias
                 self.weights = best_weights.copy()
                 self.biases = best_biases.copy()
-                self.logger.print(0, "Early stopping attivato", True)
                 return
         
 
@@ -295,6 +293,8 @@ class NeuralNetwork():
         if early_stopping:
             # indice epoca best
             best_epoch = np.argmin(self.validation_loss)
+
+        self.logger.print_test_evaluation(accuracy,True)
 
         # Grafico
         plt.figure()
@@ -321,5 +321,4 @@ class NeuralNetwork():
 
         plt.show()
 
-        print(accuracy)
-        # self.logger.print(accuracy, "Accuracy sul test set: ", True)
+        
