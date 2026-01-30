@@ -135,10 +135,6 @@ class NeuralNetwork():
             return True
         return False
            
-        
-
-           
-        
 
     def forward(self, X): 
         """
@@ -299,9 +295,6 @@ class NeuralNetwork():
         if early_stopping:
             # indice epoca best
             best_epoch = np.argmin(self.validation_loss)
-            #best_epoch = np.where(self.validation_loss == self.best_loss)
-            print(self.best_loss)
-            print(self.validation_loss[best_epoch])
 
         # Grafico
         plt.figure()
