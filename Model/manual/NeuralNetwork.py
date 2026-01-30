@@ -49,6 +49,12 @@ class NeuralNetwork():
         self.pre_activations = []
         self.dW = []                #gradineti pesi lista di matrici
         self.db = []                #gradienti baias 
+
+        self.validation_loss = []
+
+        #Early stopping
+        self.best_loss = float("inf")
+        
         
         self._initialize_weights()
       
@@ -99,12 +105,40 @@ class NeuralNetwork():
     def _one_hot(self,target):
         return np.eye(self.num_classes)[target].T
 
+
     def _shuffle(self, X_train, y_train):
             idx = np.random.permutation(len(X_train))
             X_train = X_train[idx]
             y_train = y_train[idx]
             return X_train, y_train
 
+
+    def _compute_validation_loss(self, X,y,batch_size=32):
+        local_loss = []
+        for start in range(0, len(X), batch_size):
+            batch = np.atleast_2d(X[start:start+batch_size])
+            target = np.atleast_1d(y[start:start+batch_size])
+
+            one_hot = self._one_hot(target)
+
+            self.forward(batch)
+
+            loss_val=self.loss(self.activations[self.num_layers - 1], one_hot)
+            local_loss.append(loss_val)
+
+        self.validation_loss.append(float(np.mean(local_loss)))
+
+        
+    def early_stopping(self):        
+        if (self.best_loss > self.validation_loss[-1]):
+            self.best_loss = self.validation_loss[-1]
+            return True
+        return False
+           
+        
+
+           
+        
 
     def forward(self, X): 
         """
@@ -172,7 +206,7 @@ class NeuralNetwork():
             
 
     
-    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01):
+    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01, early_stopping=False, X_validation=[], y_validation=[],pacience=5):
         """
         Addestra la rete.
         
@@ -182,8 +216,11 @@ class NeuralNetwork():
             epochs: numero di epoche
             batch_size: dimensione del batch
         """
-
+        local_pacience = pacience
         self.train_losses = []
+        best_weights = []
+        best_biases = []
+        
         for epoche in range(epochs):
             
             epoch_batch_losses = []
@@ -203,22 +240,49 @@ class NeuralNetwork():
                 loss_val=self.loss(self.activations[self.num_layers - 1], one_hot)
                 epoch_batch_losses.append(loss_val)
 
-
                 self.backward(batch,one_hot)
 
                 self.update_weights(learning_rate)
 
+
+            if early_stopping:
+                self._compute_validation_loss(X_validation,y_validation,batch_size)
+                self.logger.print(self.validation_loss[-1], f"loss validation in epoca {epoche + 1}", True)
+                
+                find_best = self.early_stopping()
+                
+                if find_best:
+                    #significa che ho trovato un minimo val_loss
+                    local_pacience = pacience
+                    best_weights = self.weights.copy()
+                    best_biases = self.biases.copy()
+                else:
+                    # non abbiamo trovato uno migliore, decrementa
+                    local_pacience -= 1
+
+            
+            
             epoch_loss = float(np.mean(epoch_batch_losses))
             self.train_losses.append(epoch_loss)
             self.logger.print(epoch_loss, f"loss in epoca {epoche + 1}", True)
 
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
+
+
+            if early_stopping and local_pacience == 0:
+                # Ripristina i migliori pesi e bias
+                self.weights = best_weights.copy()
+                self.biases = best_biases.copy()
+                self.logger.print(0, "Early stopping attivato", True)
+                return
         
+
+
         return    
     
             
-    def evaluate(self, X_test, y_test):
+    def evaluate(self, X_test, y_test, early_stopping=False):
         """Valuta le performance su test set."""
 
         X = np.atleast_2d(X_test)
@@ -226,33 +290,41 @@ class NeuralNetwork():
         if len(X) != len(y):
             raise ValueError("X_test e y_test devono avere la stessa lunghezza.")
 
-        #self.test_losses = []
+
 
         outputs = self.forward(X)
         y_pred = np.argmax(outputs, axis=0)
         accuracy = np.mean(y_pred == y)
 
-        # Facoltativo: loss sul test set
-        # one_hot = self._one_hot(y)
-        # self.test_losses.append(self.loss(outputs, one_hot))
+        if early_stopping:
+            # indice epoca best
+            best_epoch = np.argmin(self.validation_loss)
+            #best_epoch = np.where(self.validation_loss == self.best_loss)
+            print(self.best_loss)
+            print(self.validation_loss[best_epoch])
 
-        # Grafico training
-        if hasattr(self, "train_losses") and len(self.train_losses) > 0:
-            plt.figure()
-            plt.plot(self.train_losses)
-            plt.xlabel("Epoch")
-            plt.ylabel("Training Loss")
-            plt.title("Training Error Curve")
-            plt.grid(True)
+        # Grafico
+        plt.figure()
+        plt.plot(self.train_losses, label="Train loss")
 
-        # Grafico test
-        # if len(self.test_losses) > 0:
-        #     plt.figure()
-        #     plt.plot(self.test_losses)
-        #     plt.xlabel("Epoch")
-        #     plt.ylabel("Test / Validation Loss")
-        #     plt.title("Test Error Curve")
-        #     plt.grid(True)
+        if early_stopping:
+
+            plt.plot(self.validation_loss, label="Validation loss")
+
+            # linea verticale nera sull’epoca best
+            plt.axvline(
+                x=best_epoch,
+                color="black",
+                linestyle="--",
+                linewidth=1.5,
+                label="Best epoch"
+            )
+
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training Error Curve")
+        plt.grid(True)
+        plt.legend()
 
         plt.show()
 
