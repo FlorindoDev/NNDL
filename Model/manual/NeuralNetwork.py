@@ -263,7 +263,10 @@ class NeuralNetwork():
             self.logger.print_matrix(self.weights, 'matrice dei pesi')
             self.logger.print_matrix(self.biases, 'matrice dei biases') 
 
-            self.logger.print_triaing_progress(epoche,epochs,self.validation_loss[-1],self.train_losses[-1],local_patience,patience,True)
+            if early_stopping:
+                self.logger.print_triaing_progress(epoche,epochs,self.validation_loss[-1],self.train_losses[-1],local_patience,patience,early_stopping,True)
+            else:
+                self.logger.print_triaing_progress(epoche,epochs,[],self.train_losses[-1],local_patience,patience,early_stopping,True)
 
             if early_stopping and local_patience == 0:
                 # Ripristina i migliori pesi e bias
