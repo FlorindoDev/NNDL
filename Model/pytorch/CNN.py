@@ -38,7 +38,6 @@ def setup_device() -> torch.device:
 
 class CNN(nn.Module):
    def __init__(self, in_channels, num_classes):
-
        """
        Building blocks of convolutional neural network.
 
@@ -125,7 +124,7 @@ def load_datasets(data_root: str = Config.DATA_ROOT):
 
 
 def train_loop(train_ds, model: nn.Module, loss_fn, optimizer, device, batch_size: int = Config.BATCH_SIZE, verbose: bool = True):
-    train_dataloader = DataLoader(train_ds, batch_size, shuffle=False)
+    train_dataloader = DataLoader(train_ds, batch_size, shuffle=True)
     model.train()
 
     if next(model.parameters()).device.type == "cuda":
@@ -165,7 +164,7 @@ def evaluate_loss(model: nn.Module, dataloader: DataLoader, loss_fn, device: tor
 def train(model: nn.Module, train_ds, val_ds, loss_fn, optimizer, device: torch.device, epochs: int = Config.EPOCHS, patience: int = Config.PATIENCE, batch_size: int = Config.BATCH_SIZE, early_stopping: bool = False):
     """Training completo con early stopping (opzionale)."""
     if early_stopping:
-        val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+        val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=True)
         best_validation_loss = float("inf")
         best_state = None
         current_patience = patience
@@ -223,7 +222,7 @@ def test_loop(
     Returns:
         tuple: (accuracy, avg_loss)
     """
-    test_dataloader = DataLoader(test_data, batch_size, shuffle=False)
+    test_dataloader = DataLoader(test_data, batch_size, shuffle=True)
     model.eval()
     
     size = len(test_dataloader.dataset)
@@ -267,7 +266,7 @@ def main():
     # Training
     result = train(
         model=model,
-        train_ds=train_ds,
+        train_ds=training_data,
         val_ds=val_ds,
         loss_fn=loss_fn,
         optimizer=optimizer,
