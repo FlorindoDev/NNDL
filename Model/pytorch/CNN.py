@@ -266,7 +266,7 @@ def main():
     # Training
     result = train(
         model=model,
-        train_ds=training_data,
+        train_ds=train_ds,
         val_ds=val_ds,
         loss_fn=loss_fn,
         optimizer=optimizer,
