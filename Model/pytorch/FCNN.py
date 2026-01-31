@@ -1,7 +1,6 @@
 import copy
 import os
 from typing import Callable
-
 import numpy as np
 import torch
 from dotenv import load_dotenv
@@ -10,11 +9,28 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
+import random
+import matplotlib.pyplot as plt
 
 
 # =============================================================================
 # CONFIGURAZIONE
 # =============================================================================
+
+
+def set_seed(seed: int = 16) -> None:
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    try:
+        torch.use_deterministic_algorithms(True)
+    except Exception:
+        pass
 
 class Config:
     """Configurazione centralizzata per il training."""
@@ -25,8 +41,8 @@ class Config:
     
     # Training
     BATCH_SIZE = 32
-    LEARNING_RATE = 0.01
-    EPOCHS = 20
+    LEARNING_RATE = 0.001
+    EPOCHS = 50
     PATIENCE = 5  # Early stopping patience
     
     # Architettura
@@ -161,11 +177,13 @@ def create_model(
         FCNN: Modello creato.
     """
     layers = nn.Sequential(
-        nn.Linear(input_size, hidden_1),
-        nn.ReLU(),
-        nn.Linear(hidden_1, hidden_2),
-        nn.ReLU(),
-        nn.Linear(hidden_2, output_size)
+        nn.Linear(input_size, 256),
+        nn.LeakyReLU(0.01),
+        nn.Linear(256, 128),
+        nn.LeakyReLU(),
+        nn.Linear(128, 64),
+        nn.LeakyReLU(),
+        nn.Linear(64,10),
     )
     return FCNN(layers)
 
@@ -182,9 +200,9 @@ def train_loop(
     device: torch.device,
     batch_size: int = Config.BATCH_SIZE,
     verbose: bool = True
-) -> None:
+) -> float:
     """
-    Esegue un'epoca di training.
+    Esegue un'epoca di training e restituisce la loss media dell'epoca.
     
     Args:
         training_data: Dataset di training.
@@ -201,6 +219,8 @@ def train_loop(
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
 
+    epoch_loss = []
+
     for batch_idx, (X, Y) in enumerate(tqdm(train_dataloader, desc="Training")):
         X, Y = X.to(device), Y.to(device)
         
@@ -214,8 +234,14 @@ def train_loop(
         optimizer.step()
         optimizer.zero_grad()
 
+        epoch_loss.append(loss.item())
+    
+    train_loss = float(np.mean(epoch_loss)) if epoch_loss else 0.0
+    print(f"Train loss: {train_loss:.6f}")
+
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
+    return train_loss
 
 
 def test_loop(
@@ -308,7 +334,7 @@ def train(
     early_stopping: bool = False
 ) -> dict:
     """
-    Training completo con early stopping.
+    Training completo con raccolta di history (train/val loss) e opzionale early stopping.
     
     Args:
         model: Modello da trainare.
@@ -324,46 +350,79 @@ def train(
     Returns:
         dict: Dizionario con best_state e training_history.
     """
-    if early_stopping:
+    val_loader = None
+    if val_ds is not None:
         val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
-        best_validation_loss = float("inf")
-        best_state = None
-        current_patience = patience
-        history = {"train_epochs": [], "val_losses": []}
+
+    best_validation_loss = float("inf")
+    best_state = None
+    current_patience = patience
+    history = {"train_epochs": [], "train_losses": [], "val_losses": []}
     
     for epoch in range(epochs):
         print(f"\n\nEpoch {epoch + 1}/{epochs}\n" + "-" * 40)
         
         # Training
-        train_loop(train_ds, model, loss_fn, optimizer, device, batch_size)
+        train_loss = train_loop(train_ds, model, loss_fn, optimizer, device, batch_size)
+        # usare numerazione 0-based per le epoche
+        history["train_epochs"].append(epoch)
+        history["train_losses"].append(train_loss)
         
-        if early_stopping:
-            # Validation
+        # Validation (se disponibile)
+        if val_loader is not None:
             val_loss = evaluate_loss(model, val_loader, loss_fn, device)
             print(f"Validation loss: {val_loss:.6f}")
-            
-            history["train_epochs"].append(epoch + 1)
             history["val_losses"].append(val_loss)
-            
-            # Early stopping check
-            if val_loss < best_validation_loss:
-                best_validation_loss = val_loss
-                current_patience = patience
-                best_state = copy.deepcopy(model.state_dict())
-                print(f"✓ New best model saved (loss: {val_loss:.6f})")
-            else:
-                current_patience -= 1
-                print(f"No improvement. Patience: {current_patience}/{patience}")
-            
-            if current_patience == 0:
-                print("\n⚠ Early stopping triggered!")
-                model.load_state_dict(best_state)
-                break
+
+            # Early stopping check (solo se abilitato)
+            if early_stopping:
+                if val_loss < best_validation_loss:
+                    best_validation_loss = val_loss
+                    current_patience = patience
+                    best_state = copy.deepcopy(model.state_dict())
+                    print(f"✓ New best model saved (loss: {val_loss:.6f})")
+                else:
+                    current_patience -= 1
+                    print(f"No improvement. Patience: {current_patience}/{patience}")
+                
+                if current_patience == 0:
+                    print("\n⚠ Early stopping triggered!")
+                    if best_state is not None:
+                        model.load_state_dict(best_state)
+                    break
+        else:
+            # No validation dataset -> append nan to keep list lengths consistent
+            history["val_losses"].append(float("nan"))
     
     if early_stopping:
         return {"best_state": best_state, "history": history}
-     
-    return {"best_state": epoch}
+    return {"best_state": epoch, "history": history}
+ 
+def plot_history(history: dict, filename: str = "training_history.png") -> None:
+    """Plotta e salva il grafico di train e validation loss per epoca."""
+    epochs = history.get("train_epochs", [])
+    train_losses = history.get("train_losses", [])
+    val_losses = history.get("val_losses", [])
+
+    plt.figure()
+    plt.plot(epochs, train_losses, label="Train Loss")
+    plt.plot(epochs, val_losses, label="Val Loss")
+    # assicurarsi che il tick 0 sia mostrato (se ci sono epoche)
+    if epochs:
+        plt.xticks(epochs)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Train & Validation Loss per Epoch")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(filename)
+    print(f"Saved training plot to {filename}")
+    try:
+        plt.show()
+    except Exception:
+        pass
+    plt.close()
+
 
 # =============================================================================
 # MAIN
@@ -373,6 +432,8 @@ def main():
     """Entry point principale."""
     # Setup
     device = setup_device()
+
+    set_seed(16)
     
     # Carica dati
     training_data, test_data = load_datasets()
@@ -389,7 +450,7 @@ def main():
     
     # Setup training
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
+    optimizer = torch.optim.Rprop(model.parameters(), lr=Config.LEARNING_RATE)
     
     # Training
     result = train(
@@ -398,8 +459,13 @@ def main():
         val_ds=val_ds,
         loss_fn=loss_fn,
         optimizer=optimizer,
-        device=device
+        device=device,
+        batch_size=len(train_ds),
+        early_stopping=True
     )
+    # Plot training history (train + val loss per epoch)
+    if "history" in result:
+        plot_history(result["history"])
     
     # Test finale
     print("\n" + "=" * 50)
