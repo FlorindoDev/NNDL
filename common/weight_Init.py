@@ -1,5 +1,7 @@
 import numpy as np
 
+np.random.seed(16)
+
 def He(output_size , input_size):
     return np.random.randn( output_size,input_size) * np.sqrt(2.0 / input_size)
 

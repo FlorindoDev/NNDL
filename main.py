@@ -1,5 +1,5 @@
 from Model.manual.NeuralNetwork import NeuralNetwork as nn
-from common.activation import ReLU, Softmax, LeakyReLU
+from common.activation import ReLU, Softmax, LeakyReLU,Sigmoid
 from common.weight_Init import Glorot, He,Contadina
 from common.loss import CrossEntropy
 from common.update_rule import RProp, StandardUpdateRule,Adam
@@ -22,10 +22,10 @@ adam = Adam()
 
 
 
-rete = nn(layer_sizes=[784,128,64,10],update_rule=adam,activation=LeakyReLU,weight_init=Glorot) # creo la rete
+rete = nn(layer_sizes=[784,256,128,64,10],update_rule=rprop,activation=ReLU,weight_init=He) # creo la rete
 
 
-rete.train(x_train,y_train,20,32,early_stopping=True,X_validation=x_val,y_validation=y_val,patience=15) # alleno la rete
+rete.train(x_train,y_train,50,x_train.shape[0],early_stopping=True,X_validation=x_val,y_validation=y_val,patience=5) # alleno la rete
 
 # print(y_test[0:20])
 # logger.print_matrix(rete.forward(input_pre),"predizioni",True)

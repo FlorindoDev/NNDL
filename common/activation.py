@@ -48,6 +48,16 @@ def delta_softmax(y,t):
     probs = y-t
     return probs
 
+
+def sigmoid(x):
+    x = np.clip(x, -500, 500)
+    return 1.0 / (1.0 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    s = sigmoid(x)
+    return s * (1.0 - s)
+
+
 ########################################
 #               Oggetti                #
 ########################################
@@ -58,3 +68,5 @@ ReLU = Activation(fun_ReLU,derivate_ReLU)
 Softmax = Activation(fun_softmax,delta_softmax)
 
 LeakyReLU = Activation(LReLU,derivate_LReLU)
+
+Sigmoid = Activation(sigmoid,sigmoid_derivative)
