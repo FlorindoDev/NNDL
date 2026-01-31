@@ -202,7 +202,7 @@ class NeuralNetwork():
             
 
     
-    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.01, early_stopping=False, X_validation=[], y_validation=[],patience=5):
+    def train(self, X_train, y_train, epochs=1, batch_size=32, learning_rate=0.001, early_stopping=False, X_validation=[], y_validation=[],patience=5):
         """
         Addestra la rete.
         

@@ -21,11 +21,11 @@ def derivate_ReLU(a):
 
 
 def LReLU(a):
-    alfa = 0.2 # 0 < alfa < 1
+    alfa = 0.01 # 0 < alfa < 1
     return np.maximum(a, alfa * a)
 
 
-def derivate_LReLU(a, alfa=0.2):
+def derivate_LReLU(a, alfa=0.01):
     return np.where(a > 0, 1, alfa)
 
 

@@ -22,12 +22,11 @@ adam = Adam()
 
 
 
-rete = nn(layer_sizes=[784,256,128,64,10],update_rule=rprop,activation=ReLU,weight_init=He) # creo la rete
+rete = nn(layer_sizes=[784,512,256,128,64,10],update_rule=adam,activation=LeakyReLU,weight_init=He) # creo la rete
 
 
-rete.train(x_train,y_train,50,x_train.shape[0],early_stopping=True,X_validation=x_val,y_validation=y_val,patience=5) # alleno la rete
+rete.train(x_train,y_train,50,32,early_stopping=True,X_validation=x_val,y_validation=y_val,patience=5) # alleno la rete
 
 # print(y_test[0:20])
 # logger.print_matrix(rete.forward(input_pre),"predizioni",True)
 rete.evaluate(x_test,y_test,True)
-
