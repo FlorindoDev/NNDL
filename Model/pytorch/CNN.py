@@ -83,7 +83,7 @@ class Config:
     PATIENCE = 5
     TRAIN_SPLIT_RATIO = 0.7
     DATA_ROOT = "data"
-    LEARNING_RATE = 0.01
+    LEARNING_RATE = 0.001
 
 
 
@@ -270,7 +270,8 @@ def main():
         val_ds=val_ds,
         loss_fn=loss_fn,
         optimizer=optimizer,
-        device=device
+        device=device,
+        early_stopping=True
     )
     
     # Test finale
