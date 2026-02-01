@@ -217,6 +217,7 @@ def train(model: nn.Module, train_ds, val_ds, loss_fn, optimizer, device: torch.
         print(f"\n\nEpoch {epoch + 1}/{epochs}\n" + "-" * 40)
 
         epoch_train_loss = train_loop(train_ds, model, loss_fn, optimizer, device, batch_size)
+        print(f"Training loss: {epoch_train_loss:.6f}")
 
         if early_stopping:
             val_loss = evaluate_loss(model, val_loader, loss_fn, device)
