@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import copy
 
 
 def setup_device() -> torch.device:
@@ -212,7 +213,7 @@ def train(model: nn.Module, train_ds, val_ds, loss_fn, optimizer, device: torch.
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
                 current_patience = patience
-                best_state = {k: v.cpu() for k, v in model.state_dict().items()}
+                best_state = copy.deepcopy(model.state_dict())
                 print(f"✓ New best model saved (loss: {val_loss:.6f})")
             else:
                 current_patience -= 1
@@ -280,6 +281,13 @@ def plot_history(history: dict, filename: str = "training_history.png") -> None:
     plt.figure()
     plt.plot(epochs, train_losses, label="Train Loss")
     plt.plot(epochs, val_losses, label="Val Loss")
+    
+    # Aggiunge linea verticale per la miglior validation loss
+    if val_losses:
+        best_val_idx = val_losses.index(min(val_losses))
+        best_epoch = epochs[best_val_idx]
+        plt.axvline(x=best_epoch, color='k', linestyle='--', label=f'Best Epoch ({best_epoch})')
+
     # assicurarsi che il tick 0 sia mostrato (se ci sono epoche)
     if epochs:
         plt.xticks(epochs)

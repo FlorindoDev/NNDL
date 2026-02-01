@@ -409,6 +409,13 @@ def plot_history(history: dict, filename: str = "training_history.png") -> None:
     plt.figure()
     plt.plot(epochs, train_losses, label="Train Loss")
     plt.plot(epochs, val_losses, label="Val Loss")
+    
+    # Aggiunge linea verticale per la miglior validation loss
+    if val_losses:
+        best_val_idx = val_losses.index(min(val_losses))
+        best_epoch = epochs[best_val_idx]
+        plt.axvline(x=best_epoch, color='k', linestyle='--', label=f'Best Epoch ({best_epoch})')
+
     # assicurarsi che il tick 0 sia mostrato (se ci sono epoche)
     if epochs:
         plt.xticks(epochs)
