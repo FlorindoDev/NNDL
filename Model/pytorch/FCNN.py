@@ -177,12 +177,13 @@ def create_model(
         FCNN: Modello creato.
     """
     layers = nn.Sequential(
-        nn.Linear(input_size, 256),
-        nn.LeakyReLU(0.01),
+        nn.Linear(input_size, 512),
+        nn.Linear(512, 256),
+        nn.Sigmoid(),
         nn.Linear(256, 128),
-        nn.LeakyReLU(),
+        nn.Sigmoid(),
         nn.Linear(128, 64),
-        nn.LeakyReLU(),
+        nn.Sigmoid(),
         nn.Linear(64,10),
     )
     return FCNN(layers)
@@ -450,7 +451,7 @@ def main():
     
     # Setup training
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Rprop(model.parameters(), lr=Config.LEARNING_RATE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
     
     # Training
     result = train(
@@ -460,7 +461,7 @@ def main():
         loss_fn=loss_fn,
         optimizer=optimizer,
         device=device,
-        batch_size=len(train_ds),
+        batch_size=32,
         early_stopping=True
     )
     # Plot training history (train + val loss per epoch)
