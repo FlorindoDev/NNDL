@@ -159,7 +159,7 @@ def train_loop(train_ds, model: nn.Module, loss_fn, optimizer, device, batch_siz
         logits = model(X)
 
         if verbose and batch_idx == 0:
-            print(f"Batch on: {X.device}, Logits on: {logits.device}")
+            tqdm.write(f"Batch on: {X.device}, Logits on: {logits.device}")
 
         loss = loss_fn(logits, Y)
         loss.backward()
