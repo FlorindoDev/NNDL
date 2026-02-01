@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import torch.nn.functional as F
 import os
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 def setup_device() -> torch.device:
@@ -48,7 +49,19 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
 
         #self.layers = args
-        self.layers = nn.ModuleList(args)
+        self.blocks = nn.ModuleList()
+
+        #args: ((conv1,conv2),(conv3),...)
+        for block_in_args in args: #block_in_args è una tupla
+
+            # Se block_in_args non è iterabile (es. è un singolo layer come (conv3) che python valuta come conv3),
+            # lo avvolgiamo in una lista.
+            if isinstance(block_in_args, (tuple, list)):
+                self.blocks.append(nn.ModuleList(block_in_args))
+            else:
+                self.blocks.append(nn.ModuleList([block_in_args]))
+
+    
         self.fun_activation=fun_activation
         self.pool = pooling
         self.fc1 = linear_layer
@@ -66,8 +79,13 @@ class CNN(nn.Module):
                 The output tensor after passing through the network.
         """
 
-        for layer in self.layers:
-            x = self.fun_activation(layer(x))
+        #Per ogni blocco di Conv applico la Conv e la funzione di ativazione e infine faccio il pooling 
+        for block in self.blocks:
+            for layer in block:
+                #(conv1,conv2) 
+                x = layer(x)
+                x = self.fun_activation(x)
+                
             x = self.pool(x)
         
         x = x.reshape(x.shape[0], -1)  # Flatten the tensor
@@ -80,7 +98,7 @@ class CNN(nn.Module):
 # Configuration
 class Config:
     BATCH_SIZE = 32
-    EPOCHS = 10
+    EPOCHS = 50
     PATIENCE = 5
     TRAIN_SPLIT_RATIO = 0.7
     DATA_ROOT = "data"
@@ -131,6 +149,9 @@ def train_loop(train_ds, model: nn.Module, loss_fn, optimizer, device, batch_siz
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
 
+    avg_loss = 0.0
+    num_batches = len(train_dataloader)
+
     for batch_idx, (X, Y) in enumerate(tqdm(train_dataloader, desc="Training")):
         X, Y = X.to(device), Y.to(device)
 
@@ -143,9 +164,13 @@ def train_loop(train_ds, model: nn.Module, loss_fn, optimizer, device, batch_siz
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
+        
+        avg_loss += loss.item()
 
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
+        
+    return avg_loss / num_batches
 
 
 @torch.no_grad()
@@ -169,12 +194,12 @@ def train(model: nn.Module, train_ds, val_ds, loss_fn, optimizer, device: torch.
         best_validation_loss = float("inf")
         best_state = None
         current_patience = patience
-        history = {"train_epochs": [], "val_losses": []}
+        history = {"train_epochs": [], "val_losses": [], "train_losses": []}
 
     for epoch in range(epochs):
         print(f"\n\nEpoch {epoch + 1}/{epochs}\n" + "-" * 40)
 
-        train_loop(train_ds, model, loss_fn, optimizer, device, batch_size)
+        epoch_train_loss = train_loop(train_ds, model, loss_fn, optimizer, device, batch_size)
 
         if early_stopping:
             val_loss = evaluate_loss(model, val_loader, loss_fn, device)
@@ -182,6 +207,7 @@ def train(model: nn.Module, train_ds, val_ds, loss_fn, optimizer, device: torch.
 
             history["train_epochs"].append(epoch + 1)
             history["val_losses"].append(val_loss)
+            history["train_losses"].append(epoch_train_loss)
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
@@ -244,6 +270,33 @@ def test_loop(
     
     return accuracy, test_loss
 
+
+def plot_history(history: dict, filename: str = "training_history.png") -> None:
+    """Plotta e salva il grafico di train e validation loss per epoca."""
+    epochs = history.get("train_epochs", [])
+    train_losses = history.get("train_losses", [])
+    val_losses = history.get("val_losses", [])
+
+    plt.figure()
+    plt.plot(epochs, train_losses, label="Train Loss")
+    plt.plot(epochs, val_losses, label="Val Loss")
+    # assicurarsi che il tick 0 sia mostrato (se ci sono epoche)
+    if epochs:
+        plt.xticks(epochs)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Train & Validation Loss per Epoch")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(filename)
+    print(f"Saved training plot to {filename}")
+    try:
+        plt.show()
+    except Exception:
+        pass
+    plt.close()
+
+
 def main():
     """Entry point principale."""
     
@@ -260,14 +313,18 @@ def main():
 
     fun_activation = F.relu
     pooling = nn.MaxPool2d(kernel_size=2,stride=2)
-  
+
+    conv_layer_1 = (nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, padding=1),nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1))
+
+    conv_layer_2 = (nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1), nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1))
+
     # Crea modello
     model = CNN(
         fun_activation,
         pooling,
         nn.LazyLinear(10),
-        nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, padding=1),
-        nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1),
+        conv_layer_1,
+        conv_layer_2,
     ).to(device)
     
     # Setup training
@@ -277,12 +334,12 @@ def main():
     # Training
     result = train(
         model=model,
-        train_ds=training_data,
+        train_ds=train_ds,
         val_ds=val_ds,
         loss_fn=loss_fn,
         optimizer=optimizer,
         device=device,
-        early_stopping=False
+        early_stopping=True
     )
     
     # Test finale
@@ -290,6 +347,8 @@ def main():
     print("FINAL TEST EVALUATION")
     print("=" * 50)
     test_loop(test_data, model, loss_fn, device)
+    if "history" in result:
+        plot_history(result["history"])
 
 
 if __name__ == "__main__":

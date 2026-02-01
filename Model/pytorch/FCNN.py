@@ -178,12 +178,13 @@ def create_model(
     """
     layers = nn.Sequential(
         nn.Linear(input_size, 512),
+        nn.ReLU(),
         nn.Linear(512, 256),
-        nn.Sigmoid(),
+        nn.ReLU(),
         nn.Linear(256, 128),
-        nn.Sigmoid(),
+        nn.ReLU(),
         nn.Linear(128, 64),
-        nn.Sigmoid(),
+        nn.ReLU(),
         nn.Linear(64,10),
     )
     return FCNN(layers)
