@@ -9,7 +9,23 @@ import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import copy
+import numpy as np
+import random
 
+
+def set_seed(seed: int = 16) -> None:
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    try:
+        torch.use_deterministic_algorithms(True)
+    except Exception:
+        pass
 
 def setup_device() -> torch.device:
     """
@@ -318,13 +334,14 @@ def main():
     print(f"  Validation: {len(val_ds)}")
     print(f"  Test: {len(test_data)}")
     
+    set_seed()
 
     fun_activation = F.relu
     pooling = nn.MaxPool2d(kernel_size=2,stride=2)
 
-    conv_layer_1 = (nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, padding=1),nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1))
+    conv_layer_1 = (nn.Conv2d(in_channels=1, out_channels=32, kernel_size=7, padding=1),nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, padding=1))
 
-    conv_layer_2 = (nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1), nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1))
+    conv_layer_2 = (nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, padding=1), nn.Conv2d(in_channels=128, out_channels=256, kernel_size=7, padding=1))
 
     # Crea modello
     model = CNN(
