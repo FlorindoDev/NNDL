@@ -337,12 +337,12 @@ def main():
     
     set_seed()
 
-    fun_activation = F.relu
+    fun_activation = F.sigmoid
     pooling = nn.MaxPool2d(kernel_size=2,stride=2)
 
     conv_layer_1 = (nn.Conv2d(in_channels=1, out_channels=32, kernel_size=7, padding=1),nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, padding=1))
 
-    conv_layer_2 = (nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, padding=1), nn.Conv2d(in_channels=128, out_channels=256, kernel_size=7, padding=1))
+    conv_layer_2 = (nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, padding=1))
 
     # Crea modello
     model = CNN(
