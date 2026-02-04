@@ -42,7 +42,7 @@ class Config:
     # Training
     BATCH_SIZE = 32
     LEARNING_RATE = 0.001
-    EPOCHS = 50
+    EPOCHS = 10
     PATIENCE = 5  # Early stopping patience
     
     # Architettura
@@ -50,6 +50,9 @@ class Config:
     HIDDEN_1 = 128
     HIDDEN_2 = 64
     OUTPUT_SIZE = 10
+
+    # Persistence
+    MODEL_SAVE_PATH = "Model/pytorch/weights/fcnn_model.pth"
 
 
 # =============================================================================
@@ -160,34 +163,57 @@ class FCNN(nn.Module):
 
 def create_model(
     input_size: int = Config.INPUT_SIZE,
-    hidden_1: int = Config.HIDDEN_1,
-    hidden_2: int = Config.HIDDEN_2,
-    output_size: int = Config.OUTPUT_SIZE
+    hidden_layers: list[int] = [512, 256, 128, 64],
+    output_size: int = Config.OUTPUT_SIZE,
+    activations: list[type[nn.Module]] | type[nn.Module] = nn.ReLU
 ) -> FCNN:
     """
-    Crea un'istanza del modello FCNN.
+    Crea un'istanza del modello FCNN in modo modulare.
     
     Args:
-        input_size: Dimensione input (default: 784).
-        hidden_1: Neuroni primo hidden layer.
-        hidden_2: Neuroni secondo hidden layer.
+        input_size: Dimensione input.
+        hidden_layers: Lista con il numero di neuroni per ogni hidden layer.
         output_size: Numero classi output.
+        activations: Una singola classe di attivazione (applicata a tutti i layer) 
+                     o una lista di classi (una per ogni layer nascosto).
         
     Returns:
         FCNN: Modello creato.
     """
-    layers = nn.Sequential(
-        nn.Linear(input_size, 512),
-        nn.ReLU(),
-        nn.Linear(512, 256),
-        nn.ReLU(),
-        nn.Linear(256, 128),
-        nn.ReLU(),
-        nn.Linear(128, 64),
-        nn.ReLU(),
-        nn.Linear(64,10),
-    )
-    return FCNN(layers)
+    model_layers = []
+    last_size = input_size
+    
+    # Se activations è una singola classe, usala per tutti i layer
+    if isinstance(activations, type):
+        activations = [activations] * len(hidden_layers)  #[activations] * 4 produce una lista di 4 elementi: [activations, activations, activations, activations]
+    
+    if len(activations) != len(hidden_layers):
+        raise ValueError("Il numero di funzioni di attivazione deve coincidere con il numero di hidden layers.")
+
+    for size, activation_class in zip(hidden_layers, activations):
+        model_layers.append(nn.Linear(last_size, size))
+        model_layers.append(activation_class())
+        last_size = size
+    
+    model_layers.append(nn.Linear(last_size, output_size))
+    
+    # '*' è Unpacking Operator (es: nn.Sequential(*model_layers) to nn.Sequential(layer1, layer2, layer3))
+    return FCNN(nn.Sequential(*model_layers))
+
+
+def save_model(model: nn.Module, path: str = Config.MODEL_SAVE_PATH) -> None:
+    """Salva i pesi del modello."""
+    torch.save(model.state_dict(), path)
+    print(f"Modello salvato in: {path}")
+
+
+def load_model(model: nn.Module, path: str = Config.MODEL_SAVE_PATH) -> None:
+    """Carica i pesi del modello."""
+    if os.path.exists(path):
+        model.load_state_dict(torch.load(path))
+        print(f"Modello caricato da: {path}")
+    else:
+        print(f"Errore: Il file {path} non esiste.")
 
 
 # =============================================================================
@@ -432,56 +458,4 @@ def plot_history(history: dict, filename: str = "training_history.png") -> None:
         pass
     plt.close()
 
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-def main():
-    """Entry point principale."""
-    # Setup
-    device = setup_device()
-
-    set_seed(16)
-    
-    # Carica dati
-    training_data, test_data = load_datasets()
-    train_ds, val_ds = create_train_val_split(training_data)
-    
-    print(f"\nDataset sizes:")
-    print(f"  Training: {len(train_ds)}")
-    print(f"  Validation: {len(val_ds)}")
-    print(f"  Test: {len(test_data)}")
-    
-    # Crea modello
-    model = create_model().to(device)
-    print(f"\nModel on: {next(model.parameters()).device}")
-    
-    # Setup training
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
-    
-    # Training
-    result = train(
-        model=model,
-        train_ds=train_ds,
-        val_ds=val_ds,
-        loss_fn=loss_fn,
-        optimizer=optimizer,
-        device=device,
-        batch_size=32,
-        early_stopping=True
-    )
-    # Plot training history (train + val loss per epoch)
-    if "history" in result:
-        plot_history(result["history"])
-    
-    # Test finale
-    print("\n" + "=" * 50)
-    print("FINAL TEST EVALUATION")
-    print("=" * 50)
-    test_loop(test_data, model, loss_fn, device)
-
-
-if __name__ == "__main__":
-    main()
+    plt.close()

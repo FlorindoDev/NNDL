@@ -7,7 +7,7 @@ from common.logger import Logger
 from common.loss import CrossEntropy
 from common.update_rule import  standard
 
-
+MODEL_SAVE_PATH = "Model/manual/weight/fcnn_manual_weights.npz"
 
 class NeuralNetwork():
 
@@ -128,7 +128,29 @@ class NeuralNetwork():
 
         self.validation_loss.append(float(np.mean(local_loss)))
 
-        
+
+    def save_weights(self, filename=MODEL_SAVE_PATH):
+        """Salva i pesi e i biases in un file .npz."""
+        # Creiamo degli array di oggetti vuoti e li riempiamo manualmente
+        # Questo evita problemi di broadcasting quando le matrici hanno forme diverse
+        weights_arr = np.empty(len(self.weights), dtype=object)
+        for i, w in enumerate(self.weights):
+            weights_arr[i] = w
+            
+        biases_arr = np.empty(len(self.biases), dtype=object)
+        for i, b in enumerate(self.biases):
+            biases_arr[i] = b
+
+        np.savez(filename, weights=weights_arr, biases=biases_arr)
+        print(f"\nPesi salvati in {filename}")
+
+    def load_weights(self, filename=MODEL_SAVE_PATH):
+        """Carica i pesi e i biases da un file .npz."""
+        data = np.load(filename, allow_pickle=True)
+        self.weights = list(data['weights'])
+        self.biases = list(data['biases'])
+        print(f"\nPesi caricati da {filename}")
+
     def early_stopping(self):        
         if (self.best_loss > self.validation_loss[-1]):
             self.best_loss = self.validation_loss[-1]
@@ -279,7 +301,7 @@ class NeuralNetwork():
         return    
     
             
-    def evaluate(self, X_test, y_test, early_stopping=False):
+    def evaluate(self, X_test, y_test, early_stopping=False, evaluating = False):
         """Valuta le performance su test set."""
 
         X = np.atleast_2d(X_test)
@@ -298,6 +320,9 @@ class NeuralNetwork():
             best_epoch = np.argmin(self.validation_loss)
 
         self.logger.print_test_evaluation(accuracy,True)
+
+        if evaluating: 
+            return
 
         # Grafico
         plt.figure()

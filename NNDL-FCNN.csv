@@ -1,0 +1,63 @@
+Autore Test,Implementazione,Funzioni di Attivazione,Tipo di Learning,Aggiornamento Pesi,Archittetura,Epoca in cui si è fermato,Accuracy,Loss Sul Training,Loss Sul Validation,Link Foto,Patience,Learning Rate,N°Epoche,Seed,Loss Function,Funzione di Attivazione di Output
+Giuliano,FCNN,ReLU,Batch,Rprop,"784,128,64,10,",50,"95,2","0,114169","0,202685",https://drive.google.com/file/d/1IMlbuMpQ8frgjQNju3x6GuhRhTNM17Z_/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,LReLU,Batch,Rprop,"784,256,128,64,10,",50,95,"0,125438","0,20462",https://drive.google.com/file/d/1da0l1O8oj07CH8dZmqML_EzXTXlq_md9/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,Sig,Batch,Rprop,"784,512,256,128,64,10,",50,"93,7","0,167292","0,210652",https://drive.google.com/file/d/1ad-5QNfHRlSbeD1QBXQzSz4dSlXr0gf4/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,LReLU,Batch,Rprop,"784,128,64,10,",50,"94,8","0,132802","0,198509",https://drive.google.com/file/d/1AVQJsbY8tX1DHTQXlEUH62V48C-AZMug/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,Sig,Batch,Rprop,"784,256,128,64,10,",50,"95,1","0,106519","0,165652",https://drive.google.com/file/d/1Q9gpp2flOYG7wM4uBovJ_KXJObQnaBRQ/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,ReLU,Batch,Rprop,"784,512,256,128,64,10,",50,"95,9","0,089033","0,182712",https://drive.google.com/file/d/1g9fDNtcqMUhqw5ZMr0D6v46d9l3mYPmM/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,Sig,Batch,Rprop,"784,128,64,10,",50,"95,7","0,082218","0,160496",https://drive.google.com/file/d/15bLwhAi-RNBlQKJEvEczgVeXnC52iB6s/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,ReLU,Batch,Rprop,"784,256,128,64,10,",50,"94,9","0,130945","0,208718",https://drive.google.com/file/d/1jMKxV_i_L4SoAUoJXRsdEXuPw7NjxEzV/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,FCNN,LReLU,Batch,Rprop,"784,512,256,128,64,10,",50,95,"0,115374","0,203859",https://drive.google.com/file/d/1WdFiR4pYK4lZrw0rjkRKtgxdh5VCCxXL/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,ReLU,Mini-Batch,Adam,"784,128,64,10,",10,"97,5","0,053891","0,100349",https://drive.google.com/file/d/1659N5LHAqgz7ySEluqm2UJ394w_elHkX/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,LReLU,Mini-Batch,Adam,"784,256,128,64,10",13,"97,9","0,025033","0,108959",https://drive.google.com/file/d/1tIYM1gQ4F57V2h7D1n-p6Iqy06k16BvL/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,Sig,Mini-Batch,Adam,"784,512,256,128,64,10,",15,"97,5","0,028289","0,102637",https://drive.google.com/file/d/1i4NgbA4ySJSlnXAuWd--zxF9YBk4z148/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,LReLU,Mini-Batch,Adam,"784,128,64,10,",10,"97,6","0,05148","0,098794",https://drive.google.com/file/d/1OXOqQehl4TBm-O8oIjmXZGKglKte_X6G/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,Sig,Mini-Batch,Adam,"784,256,128,64,10,",13,"97,4","0,040087","0,102596",https://drive.google.com/file/d/1uqm_RVLf-7W0oZ8R9RoIDdIbJBpGeBNe/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,ReLU,Mini-Batch,Adam,"784,512,256,128,64,10,",8,"97,1","0,080028","0,110772",https://drive.google.com/file/d/16-HyLz8qDKW7aPRZj8GMrS6lzUjrGdpf/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,Sig,Mini-Batch,Adam,"784,128,64,10,",15,"97,5","0,029919","0,098751",https://drive.google.com/file/d/1a_th4fa4auLcFzBLiofoyn4FxjbTT2uL/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,ReLU,Mini-Batch,Adam,"784,256,128,64,10,",9,"97,3","0,06051","0,101782",https://drive.google.com/file/d/1Qb6sLxjlunGYa1biiu8Yo1aYayy3rUDW/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,FCNN,LReLU,Mini-Batch,Adam,"784,512,256,128,64,10,",11,"97,6","0,042085","0,099391",https://drive.google.com/file/d/1wOGSLhtM3TOW_RTlSoxnH02u0FBzKNxF/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784,128,64,10,",47,"95,9","0,058089","0,167908",Figure_1.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784,256,128,64,10,",44,"96,2","0,047306","0,160755",Figure_2.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Batch,Rprop,"784,512,256,128,64,10,",50,"95,4","0,108852","0,167595",Figure_3.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784,128,64,10,",45,"95,9","0,063258","0,170828",Figure_4.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Batch,Rprop,"784,256,128,64,10,",50,"95,7","0,092207","0,152389",Figure_5.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784,512,256,128,64,10,",39,"96,7","0,03049","0,131777",Figure_6.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Batch,Rprop,"784,128,64,10,",50,96,"0,064495","0,1487",Figure_7.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784,256,128,64,10,",43,"96,5","0,040262","0,14838",Figure_8.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784,512,256,128,64,10,",41,"96,7","0,028672","0,145025",Figure_9.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784,128,64,10,",11,"97,4","0,016209","0,142504",Figure_10.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784,256,128,64,10,",8,"97,3","0,025542","0,112918",Figure_11.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Mini-Batch,Adam,"784,512,256,128,64,10,",14,"97,5","0,012636","0,124702",Figure_12.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784,128,64,10,",8,"96,8","0,02378","0,137347",Figure_13.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Mini-Batch,Adam,"784,256,128,64,10,",13,"97,5","0,01254","0,179829",Figure_14.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784,512,256,128,64,10,",11,"97,9","0,022398","0,123203",Figure_15.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,Sig,Mini-Batch,Adam,"784,128,64,10,",15,"97,5","0,008857","0,103015",Figure_16.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784,256,128,64,10,",9,"97,6","0,02368","0,125682",Figure_17.png,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784,512,256,128,64,10,",14,"98,2","0,025502","0,095494",Figure_18.png,5,"0,001",50,16,CE,Softmax
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784, 256, 128, 64, 32, 10",46,"96,5","0,059945","0,146106",https://drive.google.com/file/d/16JMEDEUVCxqBsILfoeNJr9nnoiCBM7RE/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784, 1024, 512, 256, 128, 10",36,"97,1","0,05086","0,124764",https://drive.google.com/file/d/1wEuZG6waNPFSSECI0YTonReYZbyf94Ne/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,ReLU,Batch,Rprop,"784, 2048, 1024, 512, 256, 10",37,"97,1","0,033369","0,111613",https://drive.google.com/file/d/1Qfg7gyfarvNaK8pDkDcDZRPbeUX3f0rt/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784, 256, 128, 64, 32, 10",43,"96,2","0,075838","0,153087",https://drive.google.com/file/d/1lgAZsjt7ZUeVpLCU1hzVDifCLMeQRFg5/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784, 1024, 512, 256, 128, 10",37,"97,3","0,038135","0,12382",https://drive.google.com/file/d/1y0dqCbj3iUQWadhrTLxrIFKaOIY8HA4H/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784, 2048, 1024, 512, 256, 10",38,"97,5","0,022577","0,110031",https://drive.google.com/file/d/1jZsQuzI_CfRg4R-GxGs2X4AhnVO9zWBP/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,Sig,Batch,Rprop,"784, 256, 128, 64, 32, 10",50,"93,3","0,185634","0,23343",https://drive.google.com/file/d/1lsjQhoeKVM8oqipM6RMhbdUSm6c3NQuO/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,Sig,Batch,Rprop,"784, 1024, 512, 256, 128, 10",50,"96,2","0,06349","0,133627",https://drive.google.com/file/d/1brUcRLBVcR5MU4K0gpAA1Q-eSho6Nh3f/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,Sig,Batch,Rprop,"784, 2048, 1024, 512, 256, 10",50,"96,4","0,065166","0,129235",https://drive.google.com/file/d/1-y4JgaobqAzovPJTLM5JjWN9KkRCyX4k/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784, 256, 128, 64, 32, 10",10,97.4,"0,047952","0,102127",https://drive.google.com/file/d/1pwuTJTWNx8hO4G0_0Au6AJop_hoYRa8w/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784, 1024, 512, 256, 128, 10",10,"97,8","0,026135","0,143483",https://drive.google.com/file/d/1HSFvqfik3vU-gcX4Dv4X-C4Qre4GaYAO/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,ReLU,Mini-Batch,Adam,"784, 2048, 1024, 512, 256, 10",8,"97,3","0,035322","0,131719",https://drive.google.com/file/d/15ZF26Zd8eY1SbXZQ1ce6ZjBT-IYtvX35/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784, 256, 128, 64, 32, 10",9,"97,2","0,058945","0,110143",https://drive.google.com/file/d/1XBCKis2mfYYrYA3YFsoCOY_OuciQOhmd/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784, 1024, 512, 256, 128, 10",10,"97,8","0,02479","0,140192",https://drive.google.com/file/d/161llhg08eUStPjjcO07UJsz3u0nd1np8/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,LReLU,Mini-Batch,Adam,"784, 2048, 1024, 512, 256, 10",8,"97,2","0,039573","0,166624",https://drive.google.com/file/d/1GZTNlPpDSTX5XuM87yYNZqPxQSTiBABU/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,Sig,Mini-Batch,Adam,"784, 256, 128, 64, 32, 10",17,"97,5","0,019849","0,110342",https://drive.google.com/file/d/1zE6wjdH3jv9QRzwXQsTp9XHJwDP2fzi0/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,Sig,Mini-Batch,Adam,"784, 1024, 512, 256, 128, 10",14,"97,8","0,026174","0,0997",https://drive.google.com/file/d/1EeqdENKsOhV6dZ2bod9dZ8gnSvq28-RI/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Domenico,HomeMade FCNN,Sig,Mini-Batch,Adam,"784, 2048, 1024, 512, 256, 10",,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+Flo,HomeMade FCNN,LReLU,Batch,Rprop,"784,128,128,128,10,",,,,,,5,"0,001",50,16,CE,Softmax
+Dom,HomeMade FCNN,LReLU,Batch,Rprop,"784,256,128,10,",43,"96,4","0,072644","0,148296",https://drive.google.com/file/d/19AYYWf482d7fym73jvmuULGjludmA552/view?usp=drive_link,5,"0,001",50,16,CE,Softmax
+Giuliano,HomeMade FCNN,LReLU,Batch,Rprop,"784,384,10,",,,,,,5,"0,001",50,16,CE,Softmax

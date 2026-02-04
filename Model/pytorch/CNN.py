@@ -54,6 +54,26 @@ def setup_device() -> torch.device:
     return device
 
 
+# Configuration
+class Config:
+    BATCH_SIZE = 32
+    EPOCHS = 10
+    PATIENCE = 5
+    TRAIN_SPLIT_RATIO = 0.7
+    DATA_ROOT = "data"
+    LEARNING_RATE = 0.001
+    MODEL_SAVE_PATH = "Model/pytorch/weights/cnn_model.pth"
+
+
+def create_train_val_split(dataset, train_ratio: float = Config.TRAIN_SPLIT_RATIO):
+    """Divide il dataset in training e validation set."""
+    n_total = len(dataset)
+    n_train = int(n_total * train_ratio)
+    train_ds = torch.utils.data.Subset(dataset, range(0, n_train))
+    val_ds = torch.utils.data.Subset(dataset, range(n_train, n_total))
+    return train_ds, val_ds
+
+
 class CNN(nn.Module):
    def __init__(self, fun_activation,pooling,linear_layer: nn.Linear,*args,**kwargs):
         """
@@ -109,27 +129,26 @@ class CNN(nn.Module):
         x = self.fc1(x)            # Apply fully connected layer             
            
         return x    
+
+
+def save_model(model: nn.Module, path: str = Config.MODEL_SAVE_PATH) -> None:
+    """Salva i pesi del modello."""
+    # Crea la cartella se non esiste
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    torch.save(model.state_dict(), path)
+    print(f"\nModello salvato in: {path}")
+
+
+def load_model(model: nn.Module, path: str = Config.MODEL_SAVE_PATH) -> None:
+    """Carica i pesi del modello."""
+    if os.path.exists(path):
+        model.load_state_dict(torch.load(path))
+        print(f"\nModello caricato da: {path}")
+    else:
+        print(f"Errore: Il file {path} non esiste.")
    
 
 
-# Configuration
-class Config:
-    BATCH_SIZE = 32
-    EPOCHS = 50
-    PATIENCE = 5
-    TRAIN_SPLIT_RATIO = 0.7
-    DATA_ROOT = "data"
-    LEARNING_RATE = 0.001
-
-
-
-def create_train_val_split(dataset, train_ratio: float = Config.TRAIN_SPLIT_RATIO):
-    """Divide il dataset in training e validation set."""
-    n_total = len(dataset)
-    n_train = int(n_total * train_ratio)
-    train_ds = torch.utils.data.Subset(dataset, range(0, n_train))
-    val_ds = torch.utils.data.Subset(dataset, range(n_train, n_total))
-    return train_ds, val_ds
 
 
 def load_datasets(data_root: str = Config.DATA_ROOT):
@@ -321,61 +340,3 @@ def plot_history(history: dict, filename: str = "training_history.png") -> None:
         pass
     plt.close()
 
-
-def main():
-    """Entry point principale."""
-    
-    device=setup_device()
-    # Carica dati
-    training_data, test_data = load_datasets()
-    train_ds, val_ds = create_train_val_split(training_data)
-    
-    print(f"\nDataset sizes:")
-    print(f"  Training: {len(train_ds)}")
-    print(f"  Validation: {len(val_ds)}")
-    print(f"  Test: {len(test_data)}")
-    
-    set_seed()
-
-    fun_activation = F.sigmoid
-    pooling = nn.MaxPool2d(kernel_size=2,stride=2)
-
-    conv_layer_1 = (nn.Conv2d(in_channels=1, out_channels=32, kernel_size=7, padding=1),nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, padding=1))
-
-    conv_layer_2 = (nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, padding=1))
-
-    # Crea modello
-    model = CNN(
-        fun_activation,
-        pooling,
-        nn.LazyLinear(10),
-        conv_layer_1,
-        conv_layer_2,
-    ).to(device)
-    
-    # Setup training
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
-    
-    # Training
-    result = train(
-        model=model,
-        train_ds=train_ds,
-        val_ds=val_ds,
-        loss_fn=loss_fn,
-        optimizer=optimizer,
-        device=device,
-        early_stopping=True
-    )
-    
-    # Test finale
-    print("\n" + "=" * 50)
-    print("FINAL TEST EVALUATION")
-    print("=" * 50)
-    test_loop(test_data, model, loss_fn, device)
-    if "history" in result:
-        plot_history(result["history"])
-
-
-if __name__ == "__main__":
-    main()
