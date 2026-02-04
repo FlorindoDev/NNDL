@@ -40,7 +40,7 @@ All entry point scripts use internal flags (`TRAIN_AND_SAVE`, `LOAD_AND_TEST`) t
 #### 1. Manual Neural Network (NumPy)
 The manual implementation allows you to see "under the hood" how forward and backpropagation work.
 - **Run:** `python ManualNN_main.py`
-- **Weights:** Saved in `Model/manual/weight/fcnn_manual_weights.npz`.
+- **Weights:** Saved in `Model/manual/weights/fcnn_manual_weights.npz`.
 
 #### 2. PyTorch FCNN (Fully Connected)
 A robust and high-performance version of a Multi-Layer Perceptron.

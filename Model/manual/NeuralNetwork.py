@@ -7,7 +7,7 @@ from common.logger import Logger
 from common.loss import CrossEntropy
 from common.update_rule import  standard
 
-MODEL_SAVE_PATH = "Model/manual/weight/fcnn_manual_weights.npz"
+MODEL_SAVE_PATH = "Model/manual/weights/fcnn_manual_weights.npz"
 
 class NeuralNetwork():
 

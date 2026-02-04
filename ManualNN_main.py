@@ -10,8 +10,8 @@ from common.update_rule import RProp,Adam
 def main():
     """Entry point principale per Rete Neurale Manuale."""
     # Flag di esecuzione
-    TRAIN_AND_SAVE = False   # Se True, allena il modello e salva i pesi
-    LOAD_AND_TEST = True  # Se True, carica i pesi esistenti e testa il modello
+    TRAIN_AND_SAVE = False  # Se True, allena il modello e salva i pesi
+    LOAD_AND_TEST = True    # Se True, carica i pesi esistenti e testa il modello
 
     logger = Logger()
     dataset_preprocessor = DatasetPreprocessor()
@@ -27,7 +27,7 @@ def main():
     activation = LeakyReLU
     
     # Nome file per i pesi
-    weights_path = "Model/manual/weight/fcnn_manual_weights.npz"
+    weights_path = "Model/manual/weights/fcnn_manual_weights.npz"
 
     rete = nn(
         layer_sizes=layer_sizes, 
